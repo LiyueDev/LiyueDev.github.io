@@ -2,134 +2,235 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>把雨接成星光</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { height: 100%; overflow: hidden; background: #050e26; }
-  canvas { display: block; width: 100vw; height: 100vh; }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; overflow: hidden; background: #050e26; overscroll-behavior: none; }
+  canvas { display: block; width: 100vw; height: 100vh; height: 100dvh; }
 
-  /* ============ 设置栏 ============ */
-  :root { --ln: rgba(198, 224, 255, .14); --fg: #cfe3ff; }
-
-  #cfgBtn {
-    position: fixed; top: 18px; right: 18px; z-index: 20;
-    width: 38px; height: 38px; border-radius: 50%;
-    display: grid; place-items: center;
-    background: rgba(8, 20, 44, .62);
-    border: 1px solid rgba(198, 224, 255, .16);
-    -webkit-backdrop-filter: blur(12px);
-    backdrop-filter: blur(12px);
-    color: #cfe3ff; cursor: pointer;
-    transition: border-color .2s ease, background .2s ease;
+  /* ============ 顶栏 / 设置栏（与 wind-tree 同一套控件语言） ============ */
+  :root {
+    --ink: #edf2fa; --subtle: #a3b1c8; --faint: #78869e;
+    --edge: #3a475f; --edge-2: rgba(160, 196, 255, .18);
+    --icon-tile: rgba(34, 44, 62, .72);
+    --rail: #3a475f; --fill: #6a9bff; --fill-2: #85aeff; --thumb: #edf2fa;
+    --focus: rgba(106, 155, 255, .55);
+    --shadow: 0 22px 60px -24px rgba(0, 0, 0, .62), 0 10px 28px -12px rgba(0, 0, 0, .42);
+    --sep: rgba(163, 177, 200, .14);
   }
-  #cfgBtn:hover { border-color: rgba(198, 224, 255, .38); background: rgba(12, 28, 58, .72); }
-  #cfgBtn[aria-expanded="true"] { border-color: rgba(198, 224, 255, .42); }
 
+  /* 顶栏：不满铺，只两个角上的浮钮 */
+  .pp-top {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 30;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px;
+    -webkit-user-select: none; user-select: none;
+    pointer-events: none;
+  }
+  .pp-top-start, .pp-top-end { display: flex; align-items: center; gap: 8px; pointer-events: auto; }
+
+  .pp-icon {
+    display: grid; place-items: center; width: 36px; height: 36px; padding: 0;
+    border: 0; border-radius: 10px; background: transparent;
+    color: var(--subtle); cursor: pointer; text-decoration: none; font: inherit;
+    touch-action: manipulation;
+    transition: color .2s cubic-bezier(.22, .61, .36, 1),
+                background .2s cubic-bezier(.22, .61, .36, 1),
+                transform .18s cubic-bezier(.22, .61, .36, 1);
+  }
+  .pp-icon:hover, .pp-icon[aria-expanded="true"] {
+    color: var(--ink); background: var(--icon-tile); box-shadow: inset 0 0 0 1px var(--edge-2);
+  }
+  .pp-icon:active { transform: scale(.94); }
+  .pp-icon:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+  .wt-sign {
+    display: block; padding: 4px; border-radius: 10px; opacity: .6;
+    transition: opacity .2s ease, background .2s ease;
+  }
+  .wt-sign img { display: block; height: 22px; width: auto; }
+  .wt-sign:hover { opacity: 1; background: var(--icon-tile); }
+
+  /* 设置面板：默认收起，从设置键下沿展开 */
   #panel {
-    position: fixed; top: 66px; right: 18px; z-index: 20;
-    width: 268px; padding: 14px 16px 13px;
-    border-radius: 14px;
-    background: rgba(7, 17, 38, .60);
-    border: 1px solid var(--ln);
-    box-shadow: 0 18px 44px rgba(2, 8, 20, .5);
-    -webkit-backdrop-filter: blur(14px) saturate(120%);
-    backdrop-filter: blur(14px) saturate(120%);
-    color: var(--fg);
-    font: 400 12px/1.45 ui-sans-serif, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
-    letter-spacing: .02em;
-    transition: opacity .26s ease, transform .26s cubic-bezier(.2, .8, .3, 1);
+    position: fixed; top: 64px; left: 20px; z-index: 31;
+    width: min(292px, calc(100vw - 40px));
+    padding: 16px 18px 14px; border-radius: 18px;
+    background: linear-gradient(180deg, rgba(39, 50, 70, .94) 0%, rgba(34, 44, 62, .96) 100%);
+    box-shadow: 0 0 0 1px var(--edge), var(--shadow);
+    -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+    color: var(--ink);
+    font: 400 12px/1.45 "Noto Sans SC", "PingFang SC", "Microsoft YaHei", -apple-system, system-ui, sans-serif;
+    transform-origin: top left;
+    transition: opacity .24s cubic-bezier(.22, .61, .36, 1),
+                transform .24s cubic-bezier(.22, .61, .36, 1);
   }
-  #panel[data-open="false"] { opacity: 0; transform: translateY(-8px) scale(.985); pointer-events: none; }
+  #panel[data-open="false"] { opacity: 0; transform: translateY(-6px) scale(.96); pointer-events: none; }
 
-  .hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-  .hd .t { font-size: 12px; color: rgba(207, 227, 255, .92); }
+  .hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
+  .hd .t { font-size: 12px; font-weight: 600; letter-spacing: .02em; }
   .hd .t::before {
     content: ""; display: inline-block; width: 3px; height: 3px; border-radius: 50%;
-    background: #8fb8ff; margin-right: 7px; vertical-align: 2px; opacity: .85;
+    background: var(--fill-2); margin-right: 7px; vertical-align: 2px; opacity: .9;
   }
   #resetBtn {
     border: 0; background: none; padding: 2px 0; cursor: pointer;
-    font: inherit; font-size: 11px; color: rgba(207, 227, 255, .45);
-    transition: color .2s;
+    font: inherit; font-size: 11px; color: var(--faint); transition: color .2s;
   }
-  #resetBtn:hover { color: rgba(207, 227, 255, .85); }
+  #resetBtn:hover { color: var(--ink); }
 
-  .row + .row { margin-top: 13px; }
-  .lb { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 3px; }
-  .lb > span { color: rgba(207, 227, 255, .58); }
-  .val { display: flex; align-items: center; gap: 4px; color: rgba(207, 227, 255, .9); font-variant-numeric: tabular-nums; }
-  .val b { font-weight: 500; font-size: 11px; }
-  #dirArrow { display: inline-block; width: 12px; text-align: center; font-size: 12px; color: #8fb8ff; transition: transform .1s linear; }
+  .field { display: grid; gap: 7px; }
+  .field + .field { margin-top: 14px; }
+  .pp-label { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; color: var(--subtle); font-size: 12px; }
+  .pp-value { color: var(--ink); font-weight: 600; font-size: 13px; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
+  #dirArrow { display: inline-block; width: 13px; text-align: center; font-size: 12px; color: var(--fill-2); transition: transform .12s linear; }
 
   input[type="range"] {
     -webkit-appearance: none; appearance: none;
-    display: block; width: 100%; height: 16px; background: transparent; cursor: pointer;
+    display: block; width: 100%; height: 22px; margin: 0; background: transparent;
+    cursor: pointer; touch-action: none;
   }
   input[type="range"]::-webkit-slider-runnable-track {
-    height: 2px; border-radius: 2px;
+    height: 3px; border-radius: 999px;
     background: linear-gradient(90deg,
-      rgba(146, 186, 255, .62) var(--fill, 50%),
-      rgba(255, 255, 255, .13) var(--fill, 50%));
+      var(--fill) 0%,
+      var(--fill-2) var(--fillp, 50%),
+      var(--rail) var(--fillp, 50%),
+      var(--rail) 100%);
   }
   input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none; appearance: none;
-    width: 10px; height: 10px; margin-top: -4px; border-radius: 50%;
-    background: #dfeaff; box-shadow: 0 0 0 3px rgba(120, 164, 240, .18);
-    transition: box-shadow .2s ease;
+    width: 18px; height: 18px; margin-top: -7.5px; border-radius: 50%;
+    background: var(--thumb);
+    box-shadow: 0 3px 10px -2px rgba(0, 0, 0, .55), 0 0 0 1px var(--edge);
+    transition: box-shadow .18s ease;
   }
   input[type="range"]:hover::-webkit-slider-thumb,
-  input[type="range"]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 5px rgba(120, 164, 240, .24); }
-  input[type="range"]::-moz-range-track { height: 2px; border-radius: 2px; background: rgba(255, 255, 255, .13); }
-  input[type="range"]::-moz-range-progress { height: 2px; border-radius: 2px; background: rgba(146, 186, 255, .62); }
-  input[type="range"]::-moz-range-thumb { width: 10px; height: 10px; border: 0; border-radius: 50%; background: #dfeaff; }
-
-  .ft { margin-top: 13px; padding-top: 9px; border-top: 1px solid var(--ln); font-size: 10.5px; color: rgba(207, 227, 255, .32); }
-
-  @media (max-width: 560px) {
-    #cfgBtn { top: 12px; right: 12px; width: 34px; height: 34px; }
-    #panel { top: 56px; right: 12px; width: min(268px, calc(100vw - 24px)); padding: 13px 14px 12px; }
+  input[type="range"]:focus-visible::-webkit-slider-thumb {
+    box-shadow: 0 0 0 3px var(--focus), 0 3px 10px -2px rgba(0, 0, 0, .5);
   }
+  input[type="range"]::-moz-range-track { height: 3px; border-radius: 999px; background: var(--rail); }
+  input[type="range"]::-moz-range-progress { height: 3px; border-radius: 999px; background: linear-gradient(90deg, var(--fill), var(--fill-2)); }
+  input[type="range"]::-moz-range-thumb {
+    width: 18px; height: 18px; border: 0; border-radius: 50%; background: var(--thumb);
+    box-shadow: 0 3px 10px -2px rgba(0, 0, 0, .55), 0 0 0 1px var(--edge);
+  }
+
+  .ft {
+    margin-top: 15px; padding-top: 10px; border-top: 1px solid var(--sep);
+    font-size: 10.5px; color: var(--faint); letter-spacing: .02em;
+  }
+
+  @media (max-width: 760px) {
+    .pp-top {
+      padding: calc(10px + env(safe-area-inset-top)) calc(14px + env(safe-area-inset-right))
+               10px calc(14px + env(safe-area-inset-left));
+    }
+    .pp-icon { width: 42px; height: 42px; border-radius: 12px; }
+    .pp-icon svg { width: 22px; height: 22px; }
+    .wt-sign { display: none; }
+
+    #panel {
+      top: calc(64px + env(safe-area-inset-top));
+      left: calc(12px + env(safe-area-inset-left));
+      right: calc(12px + env(safe-area-inset-right));
+      width: auto;
+      max-height: calc(100vh - 84px - env(safe-area-inset-top));
+      max-height: calc(100dvh - 84px - env(safe-area-inset-top));
+      overflow-y: auto; -webkit-overflow-scrolling: touch;
+      padding: 16px 18px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+    }
+    .hd { margin-bottom: 16px; }
+    .hd .t { font-size: 13px; }
+    #resetBtn { font-size: 12px; }
+    .pp-label { font-size: 13px; }
+    .pp-value { font-size: 15px; }
+    .field + .field { margin-top: 16px; }
+    .field { gap: 9px; }
+
+    /* 触控尺寸放大：轨道更粗、滑块更大、整行更好按 */
+    input[type="range"] { height: 30px; }
+    input[type="range"]::-webkit-slider-runnable-track { height: 4px; }
+    input[type="range"]::-webkit-slider-thumb { width: 20px; height: 20px; margin-top: -8px; }
+    input[type="range"]::-moz-range-track { height: 4px; }
+    input[type="range"]::-moz-range-progress { height: 4px; }
+    input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; }
+
+    .ft { font-size: 11px; }
+  }
+
+  /* 横屏手机：面板别把整个画面吃掉 */
+  @media (max-height: 460px) {
+    #panel {
+      max-height: calc(100dvh - 64px - env(safe-area-inset-top));
+    }
+    .pp-top { padding-top: calc(8px + env(safe-area-inset-top)); }
+  }
+
+  /* 嵌进主页预览卡时只留场景 */
+  body.is-embed .pp-top,
+  body.is-embed #panel { display: none !important; }
 </style>
 </head>
 <body>
 <canvas id="stage"></canvas>
 
-<button id="cfgBtn" aria-expanded="true" aria-controls="panel" title="场景设置（H 键收起）">
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
-       stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-    <path d="M4 8h8M18 8h2M4 16h2M10 16h10"/>
-    <circle cx="14" cy="8" r="2.2"/><circle cx="8" cy="16" r="2.2"/>
-  </svg>
-</button>
+<header class="pp-top">
+  <div class="pp-top-start">
+    <a class="pp-icon" href="index.html" aria-label="回到 liyue 的主页" title="回到主页">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+        <path d="M14.8 4.6 7.4 12l7.4 7.4" fill="none" stroke="currentColor"
+              stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </a>
+    <button class="pp-icon" id="dockBtn" type="button" aria-label="打开设置"
+            aria-expanded="false" aria-controls="panel" title="设置（H 键开合）">
+      <svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true">
+        <path d="M4 6H7.1M10.9 6H20M4 12H13.1M16.9 12H20M4 18H6.6M10.4 18H20"
+              fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        <circle cx="9" cy="6" r="1.9" fill="none" stroke="currentColor" stroke-width="1.6"/>
+        <circle cx="15" cy="12" r="1.9" fill="none" stroke="currentColor" stroke-width="1.6"/>
+        <circle cx="8.5" cy="18" r="1.9" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      </svg>
+    </button>
+  </div>
+  <div class="pp-top-end">
+    <a class="wt-sign" href="index.html" aria-label="liyue 的作品集" title="liyue">
+      <img src="assets/sign-white.png" alt="liyue 的签名" />
+    </a>
+  </div>
+</header>
 
-<div id="panel" data-open="true">
+<div id="panel" data-open="false">
   <div class="hd">
     <span class="t">场景设置</span>
     <button id="resetBtn" type="button">重置</button>
   </div>
 
-  <div class="row">
-    <div class="lb"><span>风向</span><span class="val"><i id="dirArrow">→</i><b id="dirVal">0°</b></span></div>
+  <div class="field">
+    <div class="pp-label"><span>风向</span><span class="pp-value"><i id="dirArrow">→</i>&nbsp;<b id="dirVal">0°</b></span></div>
     <input type="range" id="dir" min="-180" max="180" step="1" value="0" aria-label="风向">
   </div>
 
-  <div class="row">
-    <div class="lb"><span>风速</span><span class="val"><b id="spdVal">42</b></span></div>
+  <div class="field">
+    <div class="pp-label"><span>风速</span><span class="pp-value"><b id="spdVal">42</b></span></div>
     <input type="range" id="speed" min="0" max="100" step="1" value="42" aria-label="风速">
   </div>
 
-  <div class="row">
-    <div class="lb"><span>雨密度</span><span class="val"><b id="denVal">62%</b></span></div>
+  <div class="field">
+    <div class="pp-label"><span>雨密度</span><span class="pp-value"><b id="denVal">62%</b></span></div>
     <input type="range" id="density" min="0" max="100" step="1" value="62" aria-label="雨密度">
   </div>
 
-  <div class="row">
-    <div class="lb"><span>下落速度</span><span class="val"><b id="fallVal">×1.0</b></span></div>
+  <div class="field">
+    <div class="pp-label"><span>下落速度</span><span class="pp-value"><b id="fallVal">×1.0</b></span></div>
     <input type="range" id="fall" min="0.5" max="2" step="0.05" value="1" aria-label="下落速度">
   </div>
 
-  <div class="ft">拖到最右可停雨，H 键收起面板</div>
+  <div class="ft">拖到最右可停雨 · H 键或 Esc 收起</div>
 </div>
 <script>
 (function () {
@@ -161,9 +262,10 @@
   };
   const dirArrow = document.getElementById('dirArrow');
 
-  // 密度 → 上限（0 表示一滴都没有）
-  const rainCap  = () => Math.round(cfg.density * 9);
-  const sparkCap = () => Math.round(cfg.density * 3.5);
+  // 密度 → 上限（0 表示一滴都没有）。按屏幕面积折一下，手机上不至于糊成一片
+  const screenScale = () => clamp((W * H) / (1000 * 760), .55, 1.25);
+  const rainCap  = () => Math.round(cfg.density * 9 * screenScale());
+  const sparkCap = () => Math.round(cfg.density * 3.5 * screenScale());
 
   /* ============ 五角星路径 ============ */
   const starPath = new Path2D();
@@ -179,11 +281,15 @@
   const umb = { a: 0, b: 0, cx: 0, cy: 0, baseX: 0, topY: 0 };
 
   function layout() {
-    umb.a     = Math.min(W * 0.19, 230);
+    // 窄屏（手机竖屏）伞要占更宽的比例，否则在大屏高里显得很小
+    const narrow = W < 640;
+    const short  = H < 480;
+    umb.a     = narrow ? Math.min(W * 0.32, 170) : Math.min(W * 0.19, 230);
+    umb.a     = Math.min(umb.a, H * 0.42);      // 短屏（横屏手机）别顶到地平线
     umb.b     = umb.a * 0.78;      // 略扁，更像伞
-    umb.topY  = H * 0.40;
+    umb.topY  = H * (short ? 0.36 : (narrow ? 0.44 : 0.40));
     umb.baseX = W * 0.5;
-    umb.cx    = umb.baseX;
+    umb.cx    = umb.baseX;         // 伞不晃，始终居中
     umb.cy    = umb.topY + umb.b;
   }
 
@@ -305,8 +411,7 @@
   function update(dt) {
     t += dt * 1000;
 
-    // 伞随风轻摆
-    umb.cx = umb.baseX + Math.sin(t * .00072) * W * .016;
+    // 伞固定在正中，不随风摆动
 
     // 补充雨
     const cap = rainCap();
@@ -520,8 +625,8 @@
     ctx.lineTo(cx, cy - b + 1);
     ctx.stroke();
 
-    /* 伞柄与挂钩 */
-    const handleBottom = cy + H * .105;
+    /* 伞柄与挂钩：别插进地平线 */
+    const handleBottom = Math.max(cy + 28, Math.min(cy + H * .105, groundY(cx) - 18));
     ctx.beginPath();
     ctx.moveTo(cx, cy);
     ctx.lineTo(cx, handleBottom);
@@ -629,7 +734,7 @@
   /* ============ 设置栏交互 ============ */
   function paintTrack(input) {
     const min = +input.min, max = +input.max;
-    input.style.setProperty('--fill', ((+input.value - min) / (max - min) * 100) + '%');
+    input.style.setProperty('--fillp', ((+input.value - min) / (max - min) * 100) + '%');
   }
 
   function readCfg() {
@@ -680,19 +785,36 @@
   });
 
   const panel = document.getElementById('panel');
-  const cfgBtn = document.getElementById('cfgBtn');
+  const dockBtn = document.getElementById('dockBtn');
 
-  function togglePanel(open) {
+  function setPanel(open) {
     panel.dataset.open = open ? 'true' : 'false';
-    cfgBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    dockBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
   }
 
-  cfgBtn.addEventListener('click', () => togglePanel(panel.dataset.open !== 'true'));
-  window.addEventListener('keydown', e => {
+  // 默认收起，只有点设置键 / H 键才展开
+  setPanel(false);
+
+  dockBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    setPanel(panel.dataset.open !== 'true');
+  });
+
+  // 点场景、点空白处收起
+  cv.addEventListener('pointerdown', () => setPanel(false));
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { setPanel(false); return; }
     if (e.key && e.key.toLowerCase() === 'h' && !e.metaKey && !e.ctrlKey && !e.altKey) {
-      togglePanel(panel.dataset.open !== 'true');
+      setPanel(panel.dataset.open !== 'true');
     }
   });
+
+  // 在主页预览卡里（?embed=1）只留场景，不出顶栏和面板
+  if (/(?:^|[?&])embed(?:=1)?(?:&|$)/.test(location.search)) {
+    document.body.classList.add('is-embed');
+    setPanel(false);
+  }
 
   window.addEventListener('resize', resize);
   resize();

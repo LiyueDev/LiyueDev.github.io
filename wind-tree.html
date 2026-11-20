@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1a2130" />
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#1a2130" />
-<title>风过海棠 · liyue</title>
+<title>把风递给花瓣</title>
 <meta name="description" content="一棵像素画的海棠。摇一下，或者放一阵风过去，看花瓣松手。liyue 作。" />
-<meta property="og:title" content="风过海棠 · liyue" />
+<meta property="og:title" content="把风递给花瓣" />
 <meta property="og:description" content="一棵像素海棠，和一场可以自己调的风。" />
 <style>
 *{box-sizing:border-box}
@@ -191,21 +191,68 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#F5F5FF}
   .pp-sep{display:none}
 }
 @media(max-width:760px){
-  .pp-frame{gap:10px;padding:10px 14px max(12px,env(safe-area-inset-bottom))}
-  .wt-title{font-size:17px;line-height:21px}
-  .wt-sub{letter-spacing:.16em}
+  .pp-frame{
+    gap:10px;
+    padding:calc(10px + env(safe-area-inset-top)) calc(14px + env(safe-area-inset-right))
+            max(12px, env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-left));
+  }
   .wt-sign img{height:22px}
-  .pp-dock{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));justify-content:space-between;align-items:center;gap:10px 12px;width:100%;padding:12px;border-radius:24px}
+  .pp-icon{width:40px;height:40px}
+
+  /* 工作台：整宽浮层 + 两列。原来的 max-content 宽会把内容顶出屏幕 */
+  .pp-dock-wrap{
+    left:calc(12px + env(safe-area-inset-left));
+    right:calc(12px + env(safe-area-inset-right));
+    bottom:calc(12px + env(safe-area-inset-bottom));
+    width:auto;max-width:none;
+    transform:translateY(7px);
+  }
+  .pp-dock-wrap[data-open=true]{max-height:calc(100dvh - 84px);transform:none}
+  .pp-dock{
+    display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+    grid-template-rows:none;grid-auto-flow:row;grid-auto-columns:auto;
+    align-items:start;justify-items:stretch;
+    gap:14px 16px;width:100%;padding:14px;border-radius:20px;
+  }
   .pp-group{display:contents}
-  .pp-label,.pp-sep{display:none}
-  .pp-field{gap:0}
-  .pp-weather{gap:10px}
-  .pp-seg button{min-width:52px;padding:0 12px}
-  .pp-dock>.pp-field:last-child{grid-column:auto}
-  .pp-toggles{justify-content:space-between;padding:0 4px}
+  .pp-sep{display:none}
+  .pp-field{min-width:0;gap:7px}
+  .pp-field--full{grid-column:1 / -1}
+  .pp-label{font-size:12px}
+  .pp-value{font-size:13px}
+  .pp-weather{justify-content:space-between;gap:10px;height:40px}
+  .pp-switch-row{height:40px}
+  .pp-seg{width:100%;height:38px}
+  .pp-seg button{min-width:0;flex:1;padding:0 10px;font-size:12px}
   .pp-track{width:100%}
+  .pp-toggles{justify-content:space-between;padding:0 2px}
 }
-@media(max-width:400px){.pp-weather{gap:6px}.pp-seg button{min-width:44px;padding:0 10px}.wt-sub{display:none}}
+
+/* 横屏手机：工作台横成一条，别把树盖住 */
+@media(orientation:landscape) and (max-height:560px){
+  .pp-dock-wrap[data-open=true]{max-height:44dvh}
+  .pp-dock{
+    display:flex;flex-wrap:nowrap;align-items:center;
+    gap:14px;padding:10px 14px;border-radius:16px;
+    overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;
+  }
+  .pp-group{display:flex;align-items:center;gap:14px}
+  .pp-field{min-width:104px;flex:1 1 auto;gap:5px}
+  .pp-field--full{min-width:184px}
+  .pp-label{font-size:11px;line-height:14px}
+  .pp-value{font-size:12px}
+  .pp-weather{height:34px;gap:8px}
+  .pp-switch-row{height:34px}
+  .pp-switch{width:40px;height:24px}
+  .pp-knob{width:18px;height:18px}
+  .pp-switch-row[aria-checked=true] .pp-knob{transform:translate(16px)}
+  .pp-seg{width:auto;height:32px;padding:2px}
+  .pp-seg button{min-width:0;flex:1;padding:0 9px;font-size:12px}
+  .pp-track{width:100%;min-width:90px;height:34px}
+  .pp-track .pp-rail,.pp-track .pp-fill{top:15px}
+  .pp-track .pp-thumb{top:7px}
+}
+@media(max-width:400px){.pp-weather{gap:6px}.pp-seg button{padding:0 8px}.wt-sub{display:none}}
 @media(prefers-reduced-motion:reduce){
   .pp-about,.wt-grow{animation:none}
   .pp-frame,.pp-body,.pp-thumb,.pp-knob,.pp-icon,.pp-switch,.pp-knob,.wt-sign{transition:none}
@@ -226,6 +273,7 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#F5F5FF}
 <body>
 <div class="pp-frame" id="frame" data-theme="light">
   <canvas class="pp-back" id="back" aria-hidden="true"></canvas>
+  <canvas class="pp-back" id="backAnim" aria-hidden="true"></canvas>
   <div class="pp-grid" aria-hidden="true"></div>
 
   <header class="pp-top">
@@ -246,7 +294,7 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#F5F5FF}
 
     <div class="wt-heading">
       <div class="wt-copy">
-        <h1 class="wt-title">风过海棠</h1>
+        <h1 class="wt-title">把风递给花瓣</h1>
         <span class="wt-sub">Wind Tree · liyue</span>
       </div>
       <button class="pp-info" id="infoBtn" type="button" aria-label="这棵树怎么做的" aria-expanded="false" aria-controls="pp-about">
@@ -297,7 +345,7 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#F5F5FF}
   <div class="pp-dock-wrap" id="dockWrap" data-open="false">
   <section class="pp-dock" aria-label="风的控制" id="dock">
     <div class="pp-group">
-      <div class="pp-field">
+      <div class="pp-field pp-field--full">
         <span class="pp-label" id="lblWeather">天气</span>
         <div class="pp-weather" id="weatherBox" data-off="true">
           <button class="pp-switch-row" id="weatherSwitch" type="button" role="switch" aria-checked="false" aria-labelledby="lblWeather">
@@ -346,7 +394,7 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#F5F5FF}
 
 <script>
 /* ============================================================
-   风过海棠 · liyue
+   把风递给花瓣 · liyue
    一棵像素海棠，一副可算的骨架。全部在运行时生成，无外部素材。
    ============================================================ */
 (function () {
@@ -648,6 +696,21 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#F5F5FF}
     ctx.fillStyle = pal.solid;
     ctx.fillRect(0, 0, bw, bh);
   }
+
+  /* 两个十六进制色按 k 调匀，用来把色带之间的硬边过渡掉 */
+  function hexRGB(h) {
+    h = String(h).replace("#", "");
+    if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+    var n = parseInt(h, 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  }
+  function mixHex(a, b, k) {
+    var A = hexRGB(a), B = hexRGB(b);
+    return "rgb(" + Math.round(A[0] + (B[0] - A[0]) * k) + "," +
+      Math.round(A[1] + (B[1] - A[1]) * k) + "," +
+      Math.round(A[2] + (B[2] - A[2]) * k) + ")";
+  }
+
   function drawBackdrop(ctx, bw, bh, pal, ax, ay) {
     var rng = mulberry32(4242);
     function px(x, y, w, h, c) {
@@ -656,83 +719,60 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#F5F5FF}
     }
     ctx.imageSmoothingEnabled = false;
 
-    var HOR = Math.round(bh * 0.275);     /* 海平线 */
-    var SHORE = Math.round(bh * 0.578);   /* 水线 */
-    var RTOP = Math.round(bh * 0.612);    /* 路面上沿 */
-    var RBOT = Math.round(bh * 0.698);    /* 路面下沿 */
-    var CUB = Math.max(2, Math.round(bh * 0.005));  /* 路缘厚度 */
+    /* 地平线不按画幅高度分，而是钉在树脚上：手机竖屏画幅又高又窄，
+       按比例分带会让公路横在树腰、灌木长到路面上去。 */
+    if (!(ax > 0)) ax = Math.round(bw * 0.5);
+    if (!(ay > 0)) ay = Math.round(bh * 0.72);
+    ax = Math.max(6, Math.min(bw - 6, Math.round(ax)));
+
+    var GY = Math.round(ay);                                        /* 树脚 */
+    var FOOT = Math.max(8, Math.round(GY * 0.085));                 /* 树脚落在路沿下多少 */
+    var RBOT = Math.round(GY - FOOT);                               /* 路面下沿 */
+    var ROAD_H = Math.min(Math.max(22, Math.round(bh * 0.086)), Math.max(18, Math.round(GY * 0.13)));
+    var RTOP = Math.round(RBOT - ROAD_H);                           /* 路面上沿 */
+    var SAND_H = Math.min(Math.max(7, Math.round(bh * 0.026)), Math.round(ROAD_H * 0.55));
+    var SHORE = Math.round(RTOP - SAND_H);                          /* 水线 */
+    var SEA_H = Math.max(40, Math.round(SHORE * 0.55));
+    var HOR = Math.max(Math.round(bh * 0.12), Math.round(SHORE - SEA_H));  /* 海平线 */
+    var CUB = Math.max(2, Math.round(bh * 0.005));                  /* 路缘厚度 */
 
     /* ---------- 天：八道横带 ---------- */
+    /* 两条色带之间用两三行中间色铺过去，不要一条一条刀切似的横线 */
+    function seam(y, upC, dnC) {
+      px(0, y - 1, bw, 1, mixHex(upC, dnC, 0.3));
+      px(0, y, bw, 1, mixHex(upC, dnC, 0.62));
+      px(0, y + 1, bw, 1, mixHex(upC, dnC, 0.84));
+    }
     var bands = pal.sky.length, bhh = HOR / bands;
-    for (var b = 0; b < bands; b++) px(0, b * bhh, bw, bhh + 1, pal.sky[b]);
+    for (var b = 0; b < bands; b++) {
+      var by0 = Math.round(b * bhh), by1 = Math.round((b + 1) * bhh);
+      px(0, by0, bw, by1 - by0 + 1, pal.sky[b]);
+    }
+    for (var sb2 = 1; sb2 < bands; sb2++) seam(Math.round(sb2 * bhh), pal.sky[sb2 - 1], pal.sky[sb2]);
     px(0, HOR - 1, bw, 1, pal.glow);
 
-    /* 星 */
-    if (pal.stars) {
-      var nStar = Math.round(bw * 0.15);
-      for (var s = 0; s < nStar; s++) {
-        var sx = Math.floor(rng() * bw);
-        var sy = Math.round(2 + rng() * (HOR - 6));
-        if (sy > HOR * 0.7 && rng() < 0.75) continue;
-        px(sx, sy, rng() < 0.18 ? 2 : 1, 1, rng() < 0.55 ? pal.star : pal.star2);
-      }
-    }
-
-    /* 月：一圈一圈的阶调光晕包一个实心 */
-    var mx = 0, my = 0, mr = Math.max(3, Math.round(bh * 0.017));
-    if (pal.moon) {
-      mx = Math.round(bw * 0.73); my = Math.round(bh * 0.10);
-      for (var ring = 3; ring >= 1; ring--) {
-        var rr2 = mr + ring * 3;
-        for (var hy2 = -rr2; hy2 <= rr2; hy2++) {
-          var hx2 = Math.floor(Math.sqrt(rr2 * rr2 - hy2 * hy2));
-          if (hx2 < mr + 1) continue;
-          px(mx - hx2, my + hy2, hx2 * 2 + 1, 1, ring === 3 ? "rgba(150,190,240,.03)" : (ring === 2 ? "rgba(150,190,240,.05)" : "rgba(150,190,240,.075)"));
-        }
-      }
-      for (var dy = -mr; dy <= mr; dy++) {
-        var dxx = Math.floor(Math.sqrt(mr * mr - dy * dy));
-        px(mx - dxx, my + dy, dxx * 2 + 1, 1, pal.moonCol);
-      }
-      px(mx + 1, my - Math.round(mr * 0.4), Math.max(1, mr), Math.max(1, Math.round(mr * 0.6)), pal.moonDim);
-    }
+    /* 星、月、浪都挪到了 anim 那一层（逐帧动），这里只留不动的天与海 */
 
     /* ---------- 海 ---------- */
     var seaH = SHORE - HOR, segs = pal.sea.length;
     for (var i = 0; i < segs; i++) {
       var y0 = HOR + Math.round(seaH * i / segs);
       var y1 = HOR + Math.round(seaH * (i + 1) / segs);
-      px(0, y0, bw, y1 - y0, pal.sea[i]);
+      px(0, y0, bw, y1 - y0 + 1, pal.sea[i]);
     }
-    px(0, HOR, bw, 2, pal.seaGlare);
-
-    /* 浪：一道一道短线，离岸越近越长 */
-    var step = Math.max(3, Math.round(bh * 0.011));
-    for (var wy = HOR + step; wy < SHORE - 2; wy += step) {
-      var t = (wy - HOR) / seaH;
-      var n = Math.round(bw * (0.014 + t * 0.042));
-      for (var k = 0; k < n; k++) {
-        var wx = Math.floor(rng() * bw);
-        var len = Math.max(1, Math.round(1 + t * 3 + rng() * t * 5));
-        px(wx, wy, len, 1, rng() < 0.68 ? pal.wave : pal.wave2);
-      }
-    }
-    /* 靠岸再补一层碎浪，水面才不平 */
-    for (var wy2 = HOR + Math.round(seaH * 0.3); wy2 < SHORE - 2; wy2 += Math.max(2, Math.round(step / 2))) {
-      var n2 = Math.round(bw * 0.022);
-      for (var k2 = 0; k2 < n2; k2++) {
-        px(Math.floor(rng() * bw), wy2, 1 + Math.floor(rng() * 2), 1, rng() < 0.5 ? pal.wave2 : pal.wave);
-      }
+    for (var si2 = 1; si2 < segs; si2++) seam(HOR + Math.round(seaH * si2 / segs), pal.sea[si2 - 1], pal.sea[si2]);
+    /* 海平线不当成一条通长的亮线：一格一格错开，远看才是水天相接 */
+    for (var hz = 0; hz < bw; hz += 5) {
+      px(hz + (rng() < 0.4 ? 1 : 0), HOR, 3 - Math.floor(rng() * 2), 1, pal.seaGlare);
     }
 
-    /* 月光在海上拉一条碎光，别排太齐 */
-    if (pal.moon) {
-      for (var ry = HOR + step; ry < SHORE - 2; ry += step) {
-        if (rng() < 0.28) continue;
-        var t2 = (ry - HOR) / seaH;
-        var half = Math.round(1 + t2 * 6 + rng() * 3);
-        var off = Math.round((rng() - 0.5) * 9);
-        px(mx - half + off, ry, half * 2, 1, pal.reflect);
+    /* 近岸的浅水：贴着岸的几行海水里掺沙色，水跟沙之间不是一刀切的边 */
+    for (var sr = 0; sr < 6; sr++) {
+      var yq = SHORE - 6 + sr;
+      if (yq <= HOR + 1) continue;
+      var mix = (sr + 1) / 7;
+      for (var xq = 0; xq < bw; xq += 3) {
+        if (rng() < mix * 0.9) px(xq + (rng() < 0.5 ? 1 : 0), yq, 1 + Math.floor(rng() * 2), 1, pal.sand);
       }
     }
 
@@ -743,15 +783,27 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#F5F5FF}
       if (hh > 0) px(hx, HOR - hh, 1, hh + 1, pal.headland);
     }
     var tw = Math.max(2, Math.round(bw * 0.004)), th = Math.max(4, Math.round(bh * 0.012));
-    px(tw, HOR - th - 2, tw + 1, th, pal.tower);
-    px(tw, HOR - th + Math.round(th * 0.35), tw + 1, Math.max(1, Math.round(th * 0.14)), pal.towerDark);
-    px(tw + Math.round(tw / 2), HOR - th - 3, 1, 1, pal.lamp);
-    px(tw + Math.round(tw / 2) + 1, HOR - th - 3, 3, 1, "rgba(255,208,140,.32)");
-    px(tw + Math.round(tw / 2) - 2, HOR - th - 3, 1, 1, "rgba(255,208,140,.18)");
+    /* 塔不放在画幅最外沿，站到海岬上、留得下整座塔 */
+    var lx = Math.min(Math.round(hw * 0.34), Math.max(2, bw - 8));
+    px(lx, HOR - th - 2, tw + 1, th, pal.tower);
+    px(lx, HOR - th + Math.round(th * 0.35), tw + 1, Math.max(1, Math.round(th * 0.14)), pal.towerDark);
+    px(lx + Math.round(tw / 2), HOR - th - 3, 1, 1, pal.lamp);
+    px(lx + Math.round(tw / 2) + 1, HOR - th - 3, 3, 1, "rgba(255,208,140,.32)");
+    px(lx + Math.round(tw / 2) - 2, HOR - th - 3, 1, 1, "rgba(255,208,140,.18)");
 
     /* ---------- 沙滩 ---------- */
     px(0, SHORE, bw, RTOP - SHORE, pal.sand);
-    px(0, SHORE, bw, 1, pal.foam);
+    /* 岸线不是一条白线：一段一段的浪头，长短粗细都不齐，还有退回去的泡沫 */
+    for (var seg2 = -4; seg2 < bw; seg2 += 6 + Math.floor(rng() * 7)) {
+      var sLen = 3 + Math.floor(rng() * 6);
+      px(seg2, SHORE, sLen, 1, pal.foam);
+      if (rng() < 0.45) px(seg2 + 1, SHORE - 1, Math.max(2, sLen - 2), 1, pal.foam);
+      if (rng() < 0.3) {
+        for (var df = 0; df < 3; df++) {
+          if (rng() < 0.5) px(seg2 + Math.floor(rng() * sLen), SHORE - 2 - df, 1, 1, pal.foam);
+        }
+      }
+    }
     for (var f = 0; f < Math.round(bw * 0.06); f++) {
       var fx = Math.floor(rng() * bw), fl = Math.max(2, Math.round(1 + rng() * bw * 0.012));
       px(fx, SHORE - 1 + (rng() < 0.45 ? 0 : 1), fl, 1, pal.foam);
@@ -809,11 +861,8 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#F5F5FF}
     px(0, RBOT + 1, bw, CUB, pal.curb);
 
     /* ---------- 树底下的草坪：树根周围多长几簇短草 ---------- */
-    if (!(ax > 0)) ax = Math.round(bw * 0.5);
-    if (!(ay > 0)) ay = Math.round(bh * 0.86);
-    ax = Math.max(6, Math.min(bw - 6, Math.round(ax)));
     var lawnTop = Math.round(ay) - 4;
-    var bedRx = Math.round(bh * 0.24), bedRy = Math.round(bh * 0.078);
+    var bedRx = Math.min(Math.round(bh * 0.24), Math.round(bw * 0.42)), bedRy = Math.round(bh * 0.078);
     var bedCy = Math.round(ay) + Math.round(bh * 0.016);
     var tuftN = Math.round(bedRx * 0.95);
     for (var tf = 0; tf < tuftN; tf++) {
@@ -849,11 +898,13 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#F5F5FF}
       px(fxp, fyp - 5, 1, 1, pink ? pal.bloomW : "#F0D7A8");/* 花心 */
     }
     /* 灌木：几个球叠成一丛，边上是碎的 */
+    /* 灌木：几个球叠成一丛，边上是碎的。窄画幅上把丛往树根收一收，免得全被裁到画外 */
+    var bushK = Math.min(1, Math.max(0.5, bw / 420));
     for (var bu = 0; bu < BUSHES.length; bu++) {
       var BS = BUSHES[bu];
-      var bxc = Math.round(ax + BS.dx);
+      var bxc = Math.round(ax + BS.dx * bushK);
       var byc = Math.round(lawnTop + BS.dy);
-      if (bxc < 4 || bxc > bw - 4 || byc >= bh - foot) continue;
+      if (bxc < 6 || bxc > bw - 6 || byc >= bh - foot) continue;
       var bhw = Math.round(BS.w / 2), bhh2 = BS.h;
       /* 底下那点影 */
       px(bxc - bhw, byc + 1, bhw * 2, 1, "rgba(8,12,20,.32)");
@@ -881,6 +932,201 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#F5F5FF}
       }
       /* 沿地那一条暗，压住根 */
       px(bxc - bhw + 1, byc, bhw * 2 - 2, 1, pal.bushDark);
+    }
+
+    return { bw: bw, bh: bh, HOR: HOR, SHORE: SHORE };
+  }
+
+  /* ============================================================
+     会动的一层：海、星、月
+     静态底图上只有天带、海水底色、沙滩、公路、草坪；浪痕、星星、月亮
+     全在这一层逐帧画。浪是一道道独立的痕，按小数坐标逐帧推，位移连续；
+     星星各自有相位慢慢漂、慢慢亮；月亮连着海上那道碎光一起极慢地挪。
+     ============================================================ */
+  var anim = { on: false, bw: 0, bh: 0, HOR: 0, SHORE: 0, marks: [], stars: [], shimmer: [], moon: null, pal: null };
+
+  /* 十六进制色 + 透明度的 rgba，浪花半透明地贴在水面上才不刺眼 */
+  function withAlpha(hex, a) {
+    var h = String(hex).replace("#", "");
+    if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+    var n = parseInt(h, 16);
+    return "rgba(" + ((n >> 16) & 255) + "," + ((n >> 8) & 255) + "," + (n & 255) + "," + a + ")";
+  }
+
+  /* 月：光晕和月盘各存一张小精灵，逐帧只做位移和一点点透明度起伏 */
+  function buildMoon(bh, pal) {
+    var mr = Math.max(3, Math.round(bh * 0.017));
+    var R = mr + 10;
+    var halo = document.createElement("canvas");
+    halo.width = halo.height = R * 2 + 1;
+    var hg = halo.getContext("2d");
+    hg.imageSmoothingEnabled = false;
+    for (var ring = 3; ring >= 1; ring--) {
+      var rr = mr + ring * 3;
+      for (var hy = -rr; hy <= rr; hy++) {
+        var hx = Math.floor(Math.sqrt(rr * rr - hy * hy));
+        if (hx < mr + 1) continue;
+        var a = ring === 3 ? 0.03 : (ring === 2 ? 0.05 : 0.075);
+        hg.fillStyle = "rgba(150,190,240," + a + ")";
+        hg.fillRect(R - hx, R + hy, hx * 2 + 1, 1);
+      }
+    }
+    var dw = mr * 2 + 3;
+    var disc = document.createElement("canvas");
+    disc.width = disc.height = dw;
+    var dg = disc.getContext("2d");
+    dg.imageSmoothingEnabled = false;
+    var c = mr + 1;
+    for (var dy = -mr; dy <= mr; dy++) {
+      var dxx = Math.floor(Math.sqrt(mr * mr - dy * dy));
+      dg.fillStyle = pal.moonCol;
+      dg.fillRect(c - dxx, c + dy, dxx * 2 + 1, 1);
+    }
+    dg.fillStyle = pal.moonDim;
+    dg.fillRect(c + 1, c - Math.round(mr * 0.4), Math.max(1, mr), Math.max(1, Math.round(mr * 0.6)));
+    return { halo: halo, disc: disc, R: R, ox: 0, oy: 0 };
+  }
+
+  function buildAnim(geo, pal) {
+    var bw = geo.bw, bh = geo.bh, HOR = geo.HOR, SHORE = geo.SHORE;
+    anim.on = true; anim.bw = bw; anim.bh = bh; anim.HOR = HOR; anim.SHORE = SHORE; anim.pal = pal;
+    if (animCv.width !== bw || animCv.height !== bh) { animCv.width = bw; animCv.height = bh; }
+
+    /* 浪不再是整块贴片平移——那样每挪一格就跳 2 个屏幕像素，看着像卡帧。
+       改成一道道独立的浪痕，逐帧按小数坐标画，画布自己补那半格，
+       位移是连续的，跟花瓣落地一个手感。三层速度不同，水是层层推过来的。 */
+    var seaH = SHORE - HOR;
+    var bands = [
+      { y0: HOR + 2, y1: SHORE - 1, sp: 0.30, d0: 0.016, d1: 0.020, l0: 1, l1: 5, seed: 9001 },
+      { y0: Math.round(HOR + seaH * 0.30), y1: SHORE - 1, sp: 0.62, d0: 0.012, d1: 0.018, l0: 1, l1: 8, seed: 9002 },
+      { y0: Math.round(HOR + seaH * 0.66), y1: SHORE - 1, sp: 1.05, d0: 0.010, d1: 0.016, l0: 2, l1: 12, seed: 9003 }
+    ];
+    anim.marks = [];
+    for (var bi = 0; bi < bands.length; bi++) {
+      var B = bands[bi], rb = mulberry32(B.seed);
+      var yy = B.y0, span = Math.max(1, B.y1 - B.y0);
+      while (yy < B.y1 - 1) {
+        var kk = (yy - B.y0) / span;
+        var den = B.d0 + (B.d1 - B.d0) * kk;
+        var cnt = Math.max(1, Math.round(bw * den));
+        for (var j = 0; j < cnt; j++) {
+          var p1 = rb(), p2 = rb(), p3 = rb(), p4 = rb();
+          var ca = p4 < 0.2 ? 0.34 : (p4 < 0.58 ? 0.85 : 0.55);
+          anim.marks.push({
+            x0: p1 * bw,
+            y: yy,
+            len: B.l0 + Math.floor(p2 * (B.l1 - B.l0 + 1)),
+            sp: B.sp,
+            /* 颜色串在这里就拼好，逐帧只填，不每帧再解析十六进制 */
+            fill: withAlpha(p3 < 0.58 ? pal.wave : pal.wave2, ca)
+          });
+        }
+        yy += 2 + (rb() < 0.34 ? 1 : 0);
+      }
+    }
+
+    /* 水面上的零星光点：不跟着浪走，各自亮各自的，水才活 */
+    anim.shimmer = [];
+    var rs = mulberry32(31313);
+    var nSh = Math.round(bw * 0.05);
+    for (var q = 0; q < nSh; q++) {
+      anim.shimmer.push({
+        x: Math.floor(rs() * bw),
+        y: Math.round(HOR + 4 + rs() * Math.max(4, seaH - 8)),
+        ph: rs() * 6.283,
+        sp: 0.5 + rs() * 1.1,
+        len: 1 + Math.floor(rs() * 2),
+        dx: 0.18 + rs() * 0.55
+      });
+    }
+
+    anim.stars = [];
+    if (pal.stars) {
+      var rng = mulberry32(70707);
+      var nStar = Math.round(bw * 0.15);
+      for (var s = 0; s < nStar; s++) {
+        var sy = Math.round(2 + rng() * (HOR - 6));
+        if (sy > HOR * 0.7 && rng() < 0.75) continue;
+        anim.stars.push({
+          x: Math.floor(rng() * bw), y: sy,
+          w: rng() < 0.18 ? 2 : 1,
+          ph: rng() * 6.283,
+          sp: 0.45 + rng() * 0.95,          /* 各自闪的节奏 */
+          dx: 0.16 + rng() * 0.5,           /* 慢慢往右挪，一分钟才几个像素 */
+          pale: rng() < 0.45
+        });
+      }
+    }
+
+    anim.moon = pal.moon ? buildMoon(bh, pal) : null;
+    if (anim.moon) {
+      anim.moon.ox = Math.round(bw * 0.73);
+      anim.moon.oy = Math.round(bh * 0.10);
+    }
+  }
+
+  function paintAnim(t) {
+    if (!anim.on) return;
+    var bw = anim.bw, bh = anim.bh, pal = anim.pal, ctx = animCtx;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.imageSmoothingEnabled = false;
+    ctx.clearRect(0, 0, bw, bh);
+
+    /* ---------- 星：各自漂、各自闪；坐标不取整，让画布自己补那半个像素 ---------- */
+    for (var i = 0; i < anim.stars.length; i++) {
+      var s = anim.stars[i];
+      var x = (s.x + t * s.dx) % bw;
+      if (x < 0) x += bw;
+      var tw = Math.sin(t * s.sp * 2.2 + s.ph);
+      if (tw < -0.5) continue;                       /* 暗下去时歇一口气，不是全都常亮 */
+      var a = Math.min(1, 0.26 + (tw + 0.5) * 0.55); /* 亮度连着走，不三档跳 */
+      ctx.fillStyle = withAlpha(s.pale ? pal.star2 : pal.star, a);
+      ctx.fillRect(x, s.y, s.w, 1);
+      if (tw > 0.88) ctx.fillRect(x, s.y - 1, 1, 1); /* 最亮时闪一颗星芒 */
+    }
+
+    /* ---------- 月：极慢地挪，光晕慢慢呼吸；海上那道碎光跟着走 ---------- */
+    if (anim.moon) {
+      var m = anim.moon;
+      var mx = m.ox + Math.sin(t * 0.0016) * bw * 0.05;
+      var my = m.oy + Math.sin(t * 0.0011 + 1.1) * bh * 0.014;
+      ctx.globalAlpha = 0.8 + 0.2 * Math.sin(t * 0.0011 + 0.6);
+      ctx.imageSmoothingEnabled = true;              /* 月亮是圆的，让它按小数位走 */
+      ctx.drawImage(m.halo, mx - m.R, my - m.R);
+      ctx.globalAlpha = 1;
+      ctx.drawImage(m.disc, mx - m.disc.width / 2, my - m.disc.height / 2);
+      ctx.imageSmoothingEnabled = false;
+
+      var step = Math.max(3, Math.round(bh * 0.011));
+      for (var ry = anim.HOR + step; ry < anim.SHORE - 2; ry += step) {
+        var t2 = (ry - anim.HOR) / Math.max(1, anim.SHORE - anim.HOR);
+        var half = 1 + t2 * 6;
+        var sway = Math.sin(t * 0.9 + ry * 0.22) * (2 + t2 * 5);
+        if (Math.sin(t * 0.7 + ry * 0.31) < -0.75) continue;   /* 有的行这会儿先暗掉 */
+        ctx.fillStyle = pal.reflect;
+        ctx.fillRect(mx - half + sway, ry, half * 2, 1);
+      }
+    }
+
+    /* ---------- 浪：一道道痕按小数坐标推，每帧都在动，不跳格 ---------- */
+    for (var w = 0; w < anim.marks.length; w++) {
+      var mk = anim.marks[w];
+      var wx = (mk.x0 + t * mk.sp) % bw;
+      if (wx < 0) wx += bw;
+      ctx.fillStyle = mk.fill;
+      ctx.fillRect(wx, mk.y, mk.len, 1);
+      if (wx + mk.len > bw) ctx.fillRect(wx - bw, mk.y, mk.len, 1);   /* 绕回左边 */
+    }
+
+    /* ---------- 水光：不跟浪走的零星点点，自己亮自己暗 ---------- */
+    for (var q = 0; q < anim.shimmer.length; q++) {
+      var sh = anim.shimmer[q];
+      var lit = Math.sin(t * sh.sp + sh.ph);
+      if (lit < 0.15) continue;
+      var sx3 = (sh.x + t * sh.dx) % bw;
+      if (sx3 < 0) sx3 += bw;
+      ctx.fillStyle = withAlpha(pal.wave, 0.1 + lit * 0.3);
+      ctx.fillRect(sx3, sh.y, sh.len, 1);
     }
   }
 
@@ -1082,10 +1328,10 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#F5F5FF}
       }
     }
 
-    /* 冠外零星的碎花瓣，勾毛边 */
-    for (var sp = 0; sp < 54; sp++) {
+    /* 冠外零星的碎花瓣，勾毛边：只贴在花冠轮廓上，别飘到外面像悬空的叶子 */
+    for (var sp = 0; sp < 40; sp++) {
       var a4 = rng() * Math.PI * 2;
-      var rr4 = 1.02 + rng() * 0.20;
+      var rr4 = 0.94 + rng() * 0.09;
       var px3 = crown.x + Math.cos(a4) * crown.rx * rr4;
       var py3 = crown.y + Math.sin(a4) * crown.ry * rr4;
       if (py3 > spec.baseY - 14 || py3 < 6) continue;
@@ -1154,7 +1400,11 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#F5F5FF}
       ground: ground, canvas: canvas, ctx: ctx,
       /* 地上的落叶：落下来的花都堆进这张 ground 画布，不凭空消失 */
       gctx: gctx, pileH: {}, pileN: 0,
-      events: [], leaves: [], blowTimer: 0, ambTimer: 0, recover: 0, shakeCount: 0
+      events: [], leaves: [], blowTimer: 0, ambTimer: 0, recover: 0, shakeCount: 0,
+      /* ambT：点过树之后才开的多飘一会儿的窗口，默认 0 就是“不点不掉” */
+      ambT: 0,
+      /* 灌木在树画布里的横向占位，落花堆到这儿要让开（layout 里按实际比例算） */
+      bushGuard: []
     };
   }
 
@@ -1394,30 +1644,46 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#F5F5FF}
     return { x: j.wx + c.ox * co - c.oy * si, y: j.wy + c.ox * si + c.oy * co };
   }
 
-  function spawnLeaf(p, c) {
-    if (p.leaves.length > 210) return;
+  function spawnLeaf(p, c, boost) {
+    if (p.leaves.length > 260) return;
     var pos = plantX(p, c);
     p.leaves.push({
       sp: p.fallers[Math.floor(Math.random() * p.fallers.length)],
-      x: pos.x, y: pos.y,
-      vx: wind.speed * 34 + (Math.random() - 0.5) * 12,
-      vy: 1 + Math.random() * 3,
+      x: pos.x + (Math.random() - 0.5) * 3,
+      y: pos.y,
+      /* 初速就带风的横向分速度，别一出手就是垂直往下 */
+      vx: wind.speed * 52 + (Math.random() - 0.5) * 24 + (boost || 0),
+      vy: 0.5 + Math.random() * 1.5,
+      /* 花瓣轻：下落加速度小、横向风加速度大，才看得出“被吹着走” */
+      g: 9 + Math.random() * 4,
+      wk: 120,
+      sway: 10,
       ph: Math.random() * 6.28,
       t: 0,
       kind: "petal",
+      life: 9,
       flip: Math.random() < 0.5
     });
   }
 
-  function detach(p, c) {
+  function detach(p, c, boost) {
     if (c.state !== "on") return false;
     c.state = "off";
     c.offAt = performance.now();
-    spawnLeaf(p, c);
+    spawnLeaf(p, c, boost);
     return true;
   }
 
-  function shakePlant(p, x, y, t) {
+  /* 连点会越掉越多：停手 2 秒回到起步量 */
+  var tap = { n: 0, last: -9 };
+  function tapBurst(t) {
+    if (t - tap.last > 2) tap.n = 0;
+    tap.n = Math.min(tap.n + 1, 6);
+    tap.last = t;
+    return 3 + tap.n * 3;          /* 6 → 9 → 12 → 15 → 18 → 21 */
+  }
+
+  function shakePlant(p, x, y, t, count) {
     p.events.push({ x: x, y: y, t0: t, power: 0.046 });
     var on = p.clusters.filter(function (c) { return c.state === "on"; });
     if (!on.length) return;
@@ -1429,8 +1695,13 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#F5F5FF}
       return { c: c, k: Math.random() * light * (1 + c.edge * 0.6) / Math.max(9, d) };
     });
     scored.sort(function (a, b) { return b.k - a.k; });
-    var n = clamp(Math.round(on.length * 0.012), 2, 4);
-    for (var i = 0; i < n && i < scored.length; i++) detach(p, scored[i].c);
+    var n = clamp(count || 3, 1, 26);
+    var sgn = wind.speed > 0.05 ? 1 : (wind.speed < -0.05 ? -1 : 0);
+    for (var i = 0; i < n && i < scored.length; i++) {
+      detach(p, scored[i].c, sgn * (6 + Math.random() * 8));
+    }
+    /* 点完再飘一小会儿，随后彻底安静下来 */
+    p.ambT = Math.max(p.ambT, 1.5 + n * 0.06);
   }
 
   function windDetach(p, dt, t) {
@@ -1470,6 +1741,14 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#F5F5FF}
     if (!p.gctx || p.pileN > 2600) return;
     var gx = Math.round(l.x), gy = Math.round(p.spec.baseY + 1);
     if (gx < 4 || gx > p.spec.w - 4) return;
+    /* 灌木站在同一条地平线上，而且是画在背景层的 —— 落花要是画上去就把草丛糊住了，
+       所以灌木占的那几段不堆花，让草丛完整露出来 */
+    var gu = p.bushGuard;
+    if (gu) {
+      for (var gi = 0; gi < gu.length; gi++) {
+        if (gx > gu[gi][0] && gx < gu[gi][1]) return;
+      }
+    }
     var col = Math.floor(gx / 2);
     var h = p.pileH[col] || 0;
     if (h > 6) return;
@@ -1497,27 +1776,36 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#F5F5FF}
     for (var i = p.leaves.length - 1; i >= 0; i--) {
       var l = p.leaves[i];
       l.t += dt;
-      l.vy += (l.g || 22) * dt;
-      l.y += l.vy * dt;
+      /* 风先把横向速度加满，上限随风力走：没风只微飘，起风才真的往左/往右推 */
+      var vmax = 18 + 62 * Math.abs(wind.speed);
+      l.vx = clamp(l.vx + wind.speed * (l.wk || 44) * dt, -vmax, vmax);
+      l.vy = Math.min(l.vy + (l.g || 22) * dt, 24);
       l.x += (l.vx + Math.sin(l.t * 2.4 + l.ph) * (l.sway || (l.amb ? 5 : 7))) * dt;
-      l.vx += wind.speed * (l.wk || 44) * dt;
+      l.y += l.vy * dt;
       var land = l.land || (p.spec.baseY + 3);
       if (l.y >= land) {
         pileAt(p, l);                    /* 落地的那一瓣，堆进土里 */
         p.leaves.splice(i, 1);
+      } else if (l.x < -14 || l.x > p.spec.w + 14) {
+        p.leaves.splice(i, 1);           /* 被风刮出画外的，别留在数组里悬着 */
       } else if (l.t > (l.life || 7)) {
         p.leaves.splice(i, 1);
       }
     }
   }
 
-  /* 一直飘着的落花：不摘树上的花，自己从树冠里松手；风越大越密 */
+  /* 自然落瓣：平时一直有，但下得很慢（一两秒才松一瓣），落得也干净利落，
+     所以是“树下偶尔飘一朵”，不是漫天碎屑悬在空中；
+     点过树之后（p.ambT>0）才短时间掉得密一点，接上那阵摇落的花。 */
   function ambientFall(p, dt) {
     p.ambTimer -= dt;
     if (p.ambTimer > 0) return;
+    var hot = p.ambT > 0;
     var w = Math.min(1, Math.abs(wind.speed) * 1.1 + Math.abs(wind.gusts) * 0.3);
-    p.ambTimer = (0.05 + Math.random() * 0.09) * (1 - 0.3 * w);
-    if (p.leaves.length > 340) return;
+    p.ambTimer = hot
+      ? (0.09 + Math.random() * 0.11) * (1 - 0.25 * w)
+      : (0.045 + Math.random() * 0.085) * (1 - 0.2 * w);
+    if (p.leaves.length > (hot ? 320 : 260)) return;
     var cw = p.crown;
     var a = Math.random() * 6.283;
     var rr = 0.35 + Math.sqrt(Math.random()) * 0.65;
@@ -1529,29 +1817,16 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#F5F5FF}
     p.leaves.push({
       sp: p.fallers[Math.random() < 0.8 ? 0 : 1],
       x: px, y: py,
-      vx: wind.speed * 22 + (Math.random() - 0.5) * 5,
-      vy: 0.45 + Math.random() * 0.8,
-      g: 3.6 + Math.random() * 3.4,
+      vx: wind.speed * 60 + (Math.random() - 0.5) * 8,
+      vy: 0.9 + Math.random() * 1.3,
+      g: 11 + Math.random() * 4,
+      wk: 120,
+      sway: 7,
       ph: Math.random() * 6.283,
-      t: 0, life: 10, amb: true,
+      t: 0, life: 7, amb: true,
       kind: "petal",
       flip: Math.random() < 0.5
     });
-    /* 偶尔两瓣一起松手，飘着才不孤单 */
-    if (Math.random() < 0.38 && p.leaves.length <= 340) {
-      p.leaves.push({
-        sp: p.fallers[0],
-        x: px + (Math.random() - 0.5) * 16,
-        y: py - Math.random() * 10,
-        vx: wind.speed * 22 + (Math.random() - 0.5) * 6,
-        vy: 0.4 + Math.random() * 0.9,
-        g: 3.2 + Math.random() * 3.6,
-        ph: Math.random() * 6.283,
-        t: 0, life: 10, amb: true,
-        kind: "petal",
-        flip: Math.random() < 0.5
-      });
-    }
   }
 
   /* 灌木也在掉叶子：一小片一小片，落在自己的根边 */
@@ -1562,7 +1837,7 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#F5F5FF}
       var b = bs[i];
       b.timer -= dt;
       if (b.timer > 0) continue;
-      b.timer = 1.2 + Math.random() * 2.2;
+      b.timer = 2.6 + Math.random() * 3.6;
       if (p.leaves.length > 220) continue;
       p.leaves.push({
         sp: p.leafSprites[Math.random() < 0.5 ? 0 : 1],
@@ -1598,6 +1873,8 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#F5F5FF}
   function stepPlant(p, t, dt) {
     updatePose(p, t);
     if (wind.active) windDetach(p, dt, t);
+    if (p.ambT > 0) p.ambT -= dt;
+    /* 平时也有自然落瓣，只是很疏；点过树之后密一阵子再收回去 */
     ambientFall(p, dt);
     bushFall(p, dt);
     slowRegrow(p, t, dt);
@@ -1636,6 +1913,9 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#F5F5FF}
   var sceneCtx = scene.getContext("2d");
   var back = document.getElementById("back");
   var backCtx = back.getContext("2d");
+  /* 会动的那一层：海、星、月，压在静态底图上面、树后面 */
+  var animCv = document.getElementById("backAnim");
+  var animCtx = animCv.getContext("2d");
   var backW = 0, backH = 0, backForce = true, backAX = 0, backAY = 0, backMode = "";
   var stageLeft = 0, stageTop = 0;
   var growBtn = document.getElementById("grow");
@@ -1645,11 +1925,38 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#F5F5FF}
   var speedValue = document.getElementById("speedValue");
   var gustValue = document.getElementById("gustValue");
 
-  var state = { theme: "light", preset: "storm", bg: "solid" };
+  /* bg：几何 / 海边；preset 是「下次起风用哪一档」，开场先无风，档位停在微风 */
+  var state = { theme: "light", preset: "breezy", bg: "solid" };
   frame.dataset.bg = state.bg;
   var sceneScale = 2, ready = false;
-  /* 单独打开时把树收一点，画面留白更多；嵌在作品卡预览里维持原尺寸 */
-  var SHRINK = frame.dataset.embed === "true" ? 1 : 0.84;
+  /* 单独打开时把树收一点，画面留白更多；嵌在作品卡预览里维持原尺寸。
+     手机上按屏幕比例再调：竖屏放大占满宽度，横屏矮屏收紧，别顶到工作台。 */
+  function computeShrink() {
+    if (frame.dataset.embed === "true") return 1;
+    var w = window.innerWidth, h = window.innerHeight;
+    if (w > h && h < 560) return 0.72;   // 横屏手机：给工作台让出高度
+    if (w < 760) return 1;               // 竖屏手机 / 窄窗
+    return 0.84;
+  }
+
+  /* 手机竖屏再往上顶一档：树本来就只占画布中间 264px（两边是留白），
+     允许画面横向溢出舞台被裁掉一点，树就真的变大了，而不是被整数缩放卡住 */
+  function phoneBoost() {
+    if (frame.dataset.embed === "true") return 1;
+    var w = window.innerWidth, h = window.innerHeight;
+    if (w >= h) return 1;
+    if (w < 480) return 1.3;
+    if (w < 760) return 1.16;
+    return 1;
+  }
+
+  /* 手机浏览器（竖屏窄屏）：默认进夜晚海边；桌面维持浅色纯色 */
+  function isPhoneScreen() {
+    var w = window.innerWidth, h = window.innerHeight;
+    var coarse = !!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+    if (h > w && w < 520) return true;
+    return coarse && Math.min(w, h) < 620;
+  }
 
   var colorCache = { ink: "#000" };
   function refreshColors() {
@@ -1663,18 +1970,45 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#F5F5FF}
     var w = stage.clientWidth, h = stage.clientHeight;
     var availW = Math.max(120, w - 24);
     var availH = Math.max(120, h - 28);
-    var k = Math.floor(Math.min(availW * dpr / SC_W, availH * dpr / SC_H));
+    var boost = phoneBoost();
+    var wantW = 0, k = 0, scale = 1;
+    if (boost > 1) {
+      /* 竖屏手机：先定“这张画要占多宽”（css px，可以溢出舞台被裁一点），
+         再反推位图倍数 k —— k 只决定清晰度，显示尺寸不再被整数缩放卡死 */
+      wantW = Math.round(Math.max(120, Math.min(availW * computeShrink() * boost, availH * (SC_W / SC_H))));
+      k = Math.ceil(wantW * dpr / SC_W);
+    } else {
+      k = Math.floor(Math.min(availW * dpr / SC_W, availH * dpr / SC_H));
+    }
     k = Math.max(1, Math.min(k, Math.ceil(4 * dpr)));
     sceneScale = k;
     scene.width = SC_W * k; scene.height = SC_H * k;
-    var cssW = scene.width / dpr * SHRINK, cssH = scene.height / dpr * SHRINK;
-    scene.style.width = cssW + "px"; scene.style.height = cssH + "px";
-    var left = Math.round((w - cssW) / 2);
-    var top = Math.round(Math.max(6, (h - cssH) / 2 - 6));
+    var rawW = scene.width / dpr, rawH = scene.height / dpr;
+    if (wantW) {
+      scale = Math.min(wantW / rawW, availH / rawH, 1);
+    } else {
+      scale = Math.min(computeShrink(), availW / rawW, availH / rawH, 1);
+    }
+    var cssWf = Math.round(rawW * scale), cssH = Math.round(rawH * scale);
+    scene.style.width = cssWf + "px"; scene.style.height = cssH + "px";
+    var left = Math.round((w - cssWf) / 2);
+    var top = Math.round(Math.max(6, (h - cssH) / 2 - (h < 480 ? 16 : 6) - (wantW ? cssH * 0.07 : 0)));
     scene.style.left = left + "px"; scene.style.top = top + "px";
     stageLeft = left; stageTop = top;
     /* 树根那条基准线：几何背景里的横线要正好从树干底下过 */
     stage.style.setProperty("--pp-base", Math.round(top + cssH * ((PAD_Y + SPEC.baseY) / SC_H)) + "px");
+    /* 灌木在背景层、按背景像素格画，先把它换算成树画布里的横向范围，
+       落花堆到那儿就绕开，免得草坪被一层花瓣糊住 */
+    var csBg = Math.max(1, sceneScale / dpr);
+    var csX = (parseFloat(scene.style.width) || 0) / SC_W || csBg;
+    var bwpx = Math.max(64, Math.round(frame.clientWidth / csBg));
+    var bushK = Math.min(1, Math.max(0.5, bwpx / 420));
+    var bRatio = csBg / csX;
+    plant.bushGuard = BUSHES.map(function (BS) {
+      var bx = SPEC.baseX + BS.dx * bushK * bRatio;
+      var bh = (BS.w / 2) * 0.94 * bRatio + 6;
+      return [bx - bh, bx + bh];
+    });
     paintBack();
     paintScene();
   }
@@ -1703,8 +2037,12 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#F5F5FF}
       backCtx.fillStyle = pal.solid;
       backCtx.fillRect(0, 0, bw, bh);
       drawSolidFloor(backCtx, bw, bh, pal, ax, ay);
+      /* 切回几何时把动效那一层清干净，别留着上一张的海 */
+      anim.on = false;
+      anim.stars = []; anim.marks = []; anim.shimmer = []; anim.moon = null;
+      animCv.width = bw; animCv.height = bh;
     } else {
-      drawBackdrop(backCtx, bw, bh, pal, ax, ay);
+      buildAnim(drawBackdrop(backCtx, bw, bh, pal, ax, ay), pal);
     }
   }
 
@@ -1727,6 +2065,7 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#F5F5FF}
     stepPlant(plant, t, dt);
     paintPlant(plant);
     paintScene();
+    paintAnim(t);
 
     if (t - (loop.check || 0) > 0.25) { loop.check = t; updateGrow(); }
     if (!ready) {
@@ -2074,7 +2413,9 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#F5F5FF}
       return;
     }
     if (!hitsPlant(hit.p, hit.x, hit.y)) return;
-    shakePlant(hit.p, hit.x, hit.y, performance.now() / 1000);
+    /* 点一下掉一批，连点越掉越多 */
+    var td = performance.now() / 1000;
+    shakePlant(hit.p, hit.x, hit.y, td, tapBurst(td));
   }
   function onMove(e) {
     if (drag) {
@@ -2102,10 +2443,12 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#F5F5FF}
     var hit = pointFor(e);
     if (drag.moved && hit && hit.p === p) {
       p.events.push({ x: hit.x, y: hit.y, t0: performance.now() / 1000, power: 0.032 });
-      shakePlant(p, hit.x, hit.y, performance.now() / 1000);
+      var tu = performance.now() / 1000;
+      shakePlant(p, hit.x, hit.y, tu, tapBurst(tu));
     } else {
       p.events.push({ x: drag.startX, y: drag.startY, t0: performance.now() / 1000, power: 0.05 });
-      shakePlant(p, drag.startX, drag.startY, performance.now() / 1000);
+      var tu2 = performance.now() / 1000;
+      shakePlant(p, drag.startX, drag.startY, tu2, tapBurst(tu2));
     }
     drag = null;
     scene.dataset.over = "";
@@ -2119,7 +2462,7 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#F5F5FF}
     if (e.key !== "Enter" && e.key !== " ") return;
     e.preventDefault();
     var t = performance.now() / 1000;
-    shakePlant(plant, plant.spec.baseX, plant.spec.baseY - plant.spec.h * 0.5, t);
+    shakePlant(plant, plant.spec.baseX, plant.spec.baseY - plant.spec.h * 0.5, t, tapBurst(t));
   });
 
   /* ================= 工作台：按键开合 ================= */
@@ -2163,21 +2506,26 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#F5F5FF}
   document.addEventListener("visibilitychange", function () { lastT = 0; });
 
   refreshColors();
-  /* 开场就是大风、往右吹：树一直在动，但花不掉（wind.manual 为假） */
+  /* 手机浏览器打开就落在夜晚海边（一屏就好看，不用自己先切两下）；
+     桌面保持原来的浅色 + 纯色，什么都不动 */
+  if (frame.dataset.embed !== "true" && isPhoneScreen()) {
+    state.theme = "dark";
+    state.bg = "sea";
+    frame.dataset.theme = "dark";
+    frame.dataset.bg = "sea";
+    applyPalette(true);
+    plant = buildPlant(SPEC);
+    drawThemeIcon();
+    backForce = true;
+  }
+  /* 开场就是一层微风，从左侧往右吹：树轻轻偏着、花往右边飘，一眼就知道风是活的。
+     wind.manual 仍为假 —— 只有用户自己动过风速，风才会把花吹秃 */
   wind.set({ direction: 1, strength: PRESETS[state.preset].strength, gusts: PRESETS[state.preset].gusts });
+  wind.manual = false;
   syncWindUI();
   layout();
 
-  /* 开屏就先有几片在半空里，一上来不会空 */
-  for (var sd = 0; sd < 16; sd++) {
-    ambientFall(plant, 99);
-    var sl = plant.leaves[plant.leaves.length - 1];
-    if (!sl) continue;
-    var k = (sd + 0.5) / 16;
-    sl.y = plant.crown.y - 2 + k * (plant.spec.baseY - plant.crown.y + 14);
-    sl.t = k * 5;
-    sl.vy = 0.7 + k * 5;
-  }
+  /* 开屏不留预置的半空花瓣：自然落瓣会自己慢慢飘下来 */
 
   statusEl.textContent = "正在长树";
   requestAnimationFrame(loop);
