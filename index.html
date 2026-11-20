@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>黎月 · Front-end & Interface</title>
-<meta name="description" content="黎月的前端作品集：用原生 HTML、CSS、Canvas 做小而有手感的东西。每个作品都是一个文件，双击就能跑。">
+<meta name="description" content="黎月的前端作品集：用 HTML、CSS、原生 JS 和 Canvas，把一个动作做准。作品都是单文件，双击就能跑。">
 <meta name="theme-color" content="#F8FAFE">
 <link rel="icon" href="assets/favicon.ico">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="黎月 · Front-end & Interface">
 <meta property="og:title" content="黎月 · Front-end & Interface">
-<meta property="og:description" content="安静的界面，会回应你。用原生 HTML、CSS、Canvas 做小而有手感的东西。">
+<meta property="og:description" content="安静的界面，会回应你。不做大而全，只把一个动作做准——作品都是单文件，双击就能跑。">
 <meta property="og:url" content="https://liyuedev.github.io/">
 <meta property="og:image" content="https://liyuedev.github.io/assets/preview.png">
 <meta property="og:image:width" content="1200">
@@ -569,13 +569,12 @@ footer .fright a:hover{color:var(--blue-deep)}
     </h1>
     <p class="hero-zh">安静的界面，会回应你。</p>
     <p class="lede">
-      做前端和界面。用 <b>HTML / CSS / 原生 JS / Canvas</b> 写小一点、准一点的东西，
-      动效不多，但要刚好在手底下。每个作品都是一个文件，双击就能跑。
+      做前端和界面，用 <b>HTML / CSS / 原生 JS / Canvas</b>。不做大而全，只把一个动作做准。点下去有回应，松手有回落 —— 作品都是单文件，双击就能跑。
     </p>
     <div class="stats">
       <span><b>02</b>件作品</span>
       <span><b>00</b>个第三方依赖</span>
-      <span><b>0</b>个构建步骤</span>
+      <span><b>00</b>个构建步骤</span>
     </div>
 
     <aside class="hero-index" aria-label="作品索引">
@@ -598,7 +597,7 @@ footer .fright a:hover{color:var(--blue-deep)}
 
     <!-- 01 -->
     <article class="card card--wide reveal">
-      <div class="preview" data-src="star-rain.html" data-title="把雨接成星光 · 实时预览">
+      <div class="preview" data-src="star-rain.html?embed=1" data-title="把雨接成星光 · 实时预览">
         <div class="cover">
           <strong>Canvas · Live</strong>
           <em>实时运行中</em>
@@ -612,10 +611,7 @@ footer .fright a:hover{color:var(--blue-deep)}
         <h3>把雨接成星光</h3>
         <div class="sub">Rain, kept as starlight</div>
         <p class="en">Every drop an umbrella catches comes back as light.</p>
-        <p class="zh">
-          一把伞接住落下来的雨，每一滴被接住的雨都会变成星光，慢慢飘回天上。
-          整场雨在 Canvas 里逐帧算出来，没有库，没有素材包。
-        </p>
+        <p class="zh">一把伞接住落下来的雨。每一滴被接住的，都会变成一点星光，慢慢飘回天上。整场雨在 Canvas 里逐帧算出来，整页不到 30KB，没有库，也没有素材包。</p>
         <div class="tags">
           <span class="tag">Canvas 2D</span>
           <span class="tag">粒子系统</span>
@@ -649,10 +645,7 @@ footer .fright a:hover{color:var(--blue-deep)}
         <h3>风过梨花</h3>
         <div class="sub">Wind tree · 像素花树</div>
         <p class="en">Pixel blossoms wired to a real skeleton — wind walks down the branches, nothing is a loop.</p>
-        <p class="zh">
-          两百多根关节连成一棵像素花树，风从枝头一段一段传下去，不是循环动画。
-          点一下树，花瓣就松手；按住枝条，还能把它拉弯。整页单文件，没有素材包。
-        </p>
+        <p class="zh">两百多根关节连成一棵像素花树。风从根到枝，一段一段传下去，不是循环动画。点一下，花瓣松手；按住枝条，能把它拉弯。深浅配色、风级、背景都在页面里直接切，整页单文件，没有素材包。</p>
         <div class="tags">
           <span class="tag">骨骼动画</span>
           <span class="tag">像素美术</span>
@@ -683,11 +676,7 @@ footer .fright a:hover{color:var(--blue-deep)}
     <div class="about">
       <div class="about-lead reveal">
         <h2>少一点脚手架，<br>多一点<em>手感</em>。</h2>
-        <p>
-          我是黎月，做前端和界面，也写一点桌面端。
-          习惯从一张白纸开始，把颜色、间距、动效一格一格推到刚好 ——
-          不多一格，也不少一格。白天写代码，晚上玩像素和雨。
-        </p>
+        <p>我是黎月，做前端和界面，也写一点桌面端。一般从一张白纸开始：先定一条基线、一个主色，再把间距和动效一格一格推到刚好 —— 不多一格，也不少一格。白天写代码，晚上养像素和雨。</p>
         <img class="sign" src="assets/avatar.png" alt="手写签名">
       </div>
 
@@ -697,7 +686,7 @@ footer .fright a:hover{color:var(--blue-deep)}
             <span class="n">01</span>
             <div>
               <h4>少文件，少出错</h4>
-              <p>没有构建步骤，没有依赖树。一个文件拷到任何电脑上都能打开，五年前也一样。</p>
+              <p>没有构建，没有依赖树。一个文件拷到任何电脑上就能打开 —— 五年前做的那个也一样。</p>
             </div>
           </li>
           <li>
@@ -711,7 +700,7 @@ footer .fright a:hover{color:var(--blue-deep)}
             <span class="n">03</span>
             <div>
               <h4>留白不是空</h4>
-              <p>少放一个元素，眼睛就多一次呼吸。克制是设计的一部分，不是妥协。</p>
+              <p>少放一个元素，视线就多一次呼吸。克制是设计的一部分，不是妥协。</p>
             </div>
           </li>
         </ul>
@@ -744,7 +733,7 @@ footer .fright a:hover{color:var(--blue-deep)}
         </div>
         <h3>liyue-air-design</h3>
         <p class="en">A visual style skill for AI agents — how things look, not how pages are built.</p>
-        <p class="zh">只给风格，不规定版式。这一页的配色、字体、圆角、阴影和缓动都出自这一份 SKILL.md；仓库里另有一张 token 表，色值可以直接抄。</p>
+        <p class="zh">只谈风格，不管版式。这一页的配色、字体、圆角、阴影、缓动，都出自这份 SKILL.md；仓库里另有 token 表，色值可以直接抄。</p>
         <div class="clone">git clone https://github.com/LiyueDev/liyue-air-design.git</div>
         <a class="open" href="https://github.com/LiyueDev/liyue-air-design" target="_blank" rel="noopener">
           在 GitHub 上查看
@@ -851,7 +840,7 @@ footer .fright a:hover{color:var(--blue-deep)}
         </div>
         <h3>liyue-pixel-plants</h3>
         <p class="en">A pixel-plant skill — trees that sway, without writing an engine.</p>
-        <p class="zh">引擎在库里，六种预设：桃、樱、梨、银杏、灌木、松。风、落花、摇晃、掉叶和点击抖动都已封装，零依赖的原生 Canvas。</p>
+        <p class="zh">引擎已经在库里：桃、樱、梨、银杏、灌木、松六种预设，风、落花、摇晃、掉叶、点击抖动都封好了。零依赖的原生 Canvas，一行 PF.mount() 就长出一棵树。</p>
         <div class="clone">git clone https://github.com/LiyueDev/liyue-pixel-plants.git</div>
         <div class="skill-links">
           <a class="open" href="https://github.com/LiyueDev/liyue-pixel-plants" target="_blank" rel="noopener">
@@ -906,7 +895,7 @@ footer .fright a:hover{color:var(--blue-deep)}
         </a>
       </div>
       <div class="contact-side">
-        <p>接前端实现、交互细节和单文件小玩意。<br>一般两天内回信。</p>
+        <p>接前端实现、交互细节，也接单文件的小玩意。<br>平时两天内回信。</p>
         <div class="links2">
           <a href="https://github.com/LiyueDev" target="_blank" rel="noopener">GitHub</a>
           <a href="https://github.com/LiyueDev/liyue-air-design" target="_blank" rel="noopener">设计系统</a>
@@ -919,7 +908,7 @@ footer .fright a:hover{color:var(--blue-deep)}
 
 <footer>
   <div class="wrap" style="display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;width:100%">
-    <small>© <span id="year">2026</span> 黎月 · 一个文件写成的站点</small>
+    <small>© <span id="year">2026</span> 黎月 · 手写页面，没有构建步骤</small>
     <div class="fright"><span>UTC+8</span><span>No build step</span><a href="https://github.com/LiyueDev" target="_blank" rel="noopener">Open source ↗</a></div>
   </div>
 </footer>
