@@ -4,6 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>把雨接成星光</title>
+<script>
+/* 在样式生效前就判定 embed：类落在 documentElement 上，后面的脚本即使出错，
+   预览卡里也不会露出顶栏和面板，也不会闪一下 */
+(function () {
+  if (/(?:^|[?&])embed(?:=1)?(?:&|$)/.test(location.search)) {
+    document.documentElement.classList.add('is-embed');
+  }
+})();
+</script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { height: 100%; overflow: hidden; background: #050e26; overscroll-behavior: none; }
@@ -171,8 +180,8 @@
   }
 
   /* 嵌进主页预览卡时只留场景 */
-  body.is-embed .pp-top,
-  body.is-embed #panel { display: none !important; }
+  html.is-embed .pp-top,
+  html.is-embed #panel { display: none !important; }
 </style>
 </head>
 <body>
@@ -814,6 +823,10 @@
   if (/(?:^|[?&])embed(?:=1)?(?:&|$)/.test(location.search)) {
     document.body.classList.add('is-embed');
     setPanel(false);
+    // 直接把外壳摘掉：不只靠样式覆盖，缓存了旧状态或被别的东西改了 data-open 也不会露出来
+    const top = document.querySelector('.pp-top');
+    if (top) top.remove();
+    panel.remove();
   }
 
   window.addEventListener('resize', resize);
