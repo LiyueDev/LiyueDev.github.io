@@ -20,10 +20,12 @@
 
 `assets/` 是签名与图标，`preview.png` 用于社交分享卡片。
 
-## 两个开源 Skill
+## 一个主推项目，两个 Skill
 
-站里展示的两套能力都单独开源，可以 `git clone` 走：
+站里展示的东西都单独开源，可以 `git clone` 走：
 
+- **LyLaunch · 轻启**（主推）—— 热键唤起的 Windows 启动器：拼音搜应用、剪贴板历史、插件系统，纯本地不上传。22,000+ 行 Python，PySide6 + Win32 原生 API。
+  <https://github.com/LiyueDev/LyLaunch>
 - **liyue-air-design** —— 这套「Air」设计风格本身：配色、字体、圆角、阴影、缓动、图标线宽，`SKILL.md` 加一张 token 表。
   <https://github.com/LiyueDev/liyue-air-design>
 - **liyue-pixel-plants** —— 像素植物引擎：六种树、骨骼风力、开花落花，页面里那棵会摆的树就是它长的。
