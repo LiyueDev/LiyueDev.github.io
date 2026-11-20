@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>黎月 · Front-end & Interface</title>
-<meta name="description" content="黎月的前端作品集：用 HTML、CSS、原生 JS 和 Canvas，把一个动作做准。作品都是单文件，双击就能跑。">
+<meta name="description" content="Complex under the hood. Quiet on the surface. 黎月的前端作品集：把复杂留给代码，把安静留给界面。">
 <meta name="theme-color" content="#F8FAFE">
 <link rel="icon" href="assets/favicon.ico">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="黎月 · Front-end & Interface">
 <meta property="og:title" content="黎月 · Front-end & Interface">
-<meta property="og:description" content="安静的界面，会回应你。不做大而全，只把一个动作做准——作品都是单文件，双击就能跑。">
+<meta property="og:description" content="Complex under the hood. Quiet on the surface. 把复杂留给代码，把安静留给界面。">
 <meta property="og:url" content="https://liyuedev.github.io/">
 <meta property="og:image" content="https://liyuedev.github.io/assets/preview.png">
 <meta property="og:image:width" content="1200">
@@ -18,7 +18,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="黎月 · Front-end & Interface">
-<meta name="twitter:description" content="安静的界面，会回应你。">
+<meta name="twitter:description" content="Complex under the hood. Quiet on the surface.">
 <meta name="twitter:image" content="https://liyuedev.github.io/assets/preview.png">
 <style>
 :root{
@@ -64,22 +64,41 @@ a{color:inherit;text-decoration:none}
   -webkit-backdrop-filter:blur(18px) saturate(1.25);
   border-bottom-color:var(--line);
 }
-.brand{display:flex;align-items:center;gap:11px;flex-shrink:0}
+.brand{display:flex;align-items:center;gap:12px;flex-shrink:0}
 .brand img{height:30px;width:auto;transition:height .45s var(--ease)}
 .nav.on .brand img{height:26px}
+.who{display:flex;flex-direction:column;gap:2px;line-height:1.1;padding-left:12px;border-left:1px solid var(--line)}
 .brand b{font-size:.82rem;font-weight:600;letter-spacing:-.01em;color:var(--ink)}
-.brand b::before{content:"·";margin-right:9px;color:var(--ink-3)}
+.who i{
+  font-style:normal;font-family:var(--mono);font-size:.58rem;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink-4);
+}
+
+.gh{
+  display:grid;place-items:center;width:32px;height:32px;border-radius:50%;
+  color:var(--ink-3);border:1px solid transparent;
+  transition:color .24s var(--ease),background .24s var(--ease),
+             border-color .24s var(--ease),box-shadow .24s var(--ease);
+}
+.gh svg{width:16px;height:16px}
+.gh:hover,.gh:focus-visible{color:var(--blue-deep);background:#fff;border-color:var(--line);box-shadow:var(--sh-1)}
 
 .links{display:flex;align-items:center;gap:30px}
 .links a{
-  position:relative;font-size:.8rem;color:var(--ink-2);letter-spacing:.02em;
+  position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;
   padding-block:6px;transition:color .24s var(--ease);
+}
+.links a b{font-weight:500;font-size:.8rem;letter-spacing:.02em;color:var(--ink-2);transition:color .24s var(--ease)}
+.links a i{
+  font-style:normal;font-family:var(--mono);font-size:.57rem;letter-spacing:.06em;
+  color:var(--ink-4);transition:color .24s var(--ease);
 }
 .links a::after{
   content:"";position:absolute;left:0;right:100%;bottom:0;height:1px;
   background:var(--blue);transition:right .4s var(--ease);
 }
-.links a:hover{color:var(--ink)}
+.links a:hover b{color:var(--ink)}
+.links a:hover i{color:var(--blue)}
 .links a:hover::after{right:0}
 
 .status{display:flex;align-items:center;gap:18px;flex-shrink:0}
@@ -124,10 +143,11 @@ a{color:inherit;text-decoration:none}
   margin-bottom:34px;
 }
 .eyebrow::before{content:"";width:34px;height:1px;background:var(--line-2);display:block}
+.eyebrow.cn{font-family:var(--sans);letter-spacing:.05em;text-transform:none;font-size:.82rem;color:var(--ink-2)}
 
 h1{
-  font-size:clamp(2.45rem,6.5vw,5.2rem);line-height:1.03;letter-spacing:-.045em;font-weight:800;
-  max-width:15ch;
+  font-size:clamp(2.15rem,5.4vw,4.5rem);line-height:1.06;letter-spacing:-.038em;font-weight:800;
+  max-width:none;
 }
 h1 .w{display:inline-block;opacity:0;transform:translateY(22px);
   animation:rise .95s var(--ease) forwards;animation-delay:calc(.12s + var(--i)*.075s)}
@@ -156,6 +176,16 @@ h1 .accent{color:var(--blue-deep)}
 }
 .stats > span:last-child{border-right:0;padding-right:0;margin-right:0}
 .stats b{font-family:var(--mono);font-size:1.28rem;font-weight:500;color:var(--ink);letter-spacing:-.04em}
+.stats > a{
+  display:inline-flex;align-items:center;gap:7px;
+  font-size:.78rem;color:var(--ink-2);letter-spacing:.02em;
+  padding-right:26px;margin-right:26px;border-right:1px solid var(--line);
+  transition:color .25s var(--ease);
+}
+.stats > a:last-child{border-right:0;padding-right:0;margin-right:0}
+.stats > a svg{width:11px;height:11px;color:var(--ink-4);transition:transform .3s var(--ease),color .25s var(--ease)}
+.stats > a:hover{color:var(--blue-deep)}
+.stats > a:hover svg{transform:translateY(2px);color:var(--blue)}
 
 /* hero 索引 */
 .hero-index{
@@ -332,10 +362,40 @@ h3{font-size:1.62rem;line-height:1.25;font-weight:700;letter-spacing:-.032em}
   margin-top:2px;font-family:var(--mono);font-size:.61rem;letter-spacing:.04em;
   color:var(--ink-4);line-height:1.9;
 }
-.skill-links{display:flex;flex-wrap:wrap;gap:20px 26px;margin-top:auto;padding-top:8px}
+.skill-links{display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px;margin-top:auto;padding-top:8px}
 .skill-links .open{margin-top:0;padding-top:0}
 .open.alt{color:var(--ink-2)}
 .open.alt:hover{color:var(--blue-deep)}
+.dl{
+  display:inline-flex;align-items:center;gap:9px;
+  padding:9px 16px;border-radius:9px;
+  font-size:.78rem;font-weight:600;letter-spacing:.04em;color:var(--blue-deep);
+  background:var(--surface-2);border:1px solid var(--line-2);
+  transition:background .25s var(--ease),border-color .25s var(--ease),color .25s var(--ease),box-shadow .25s var(--ease);
+}
+.dl svg{width:14px;height:14px}
+.dl:hover{background:var(--blue-soft);border-color:var(--blue);color:var(--blue-deep);box-shadow:var(--sh-1)}
+
+/* 主推项目 · LyLaunch 截图轮播 */
+.ly-title{display:flex;align-items:center;gap:10px}
+.ly-mark{width:20px;height:30px;flex:none;display:block;transform:translateY(-1px)}
+.ly-car{display:flex;flex-direction:column;gap:10px;min-width:0}
+.ly-stage{
+  position:relative;height:clamp(302px,25vw,336px);max-width:560px;
+  border:1px solid var(--line);border-radius:14px;overflow:hidden;
+  background:#fff;box-shadow:var(--sh-1);cursor:pointer;
+  transition:border-color .3s var(--ease),box-shadow .3s var(--ease);
+}
+.ly-stage:hover{border-color:var(--line-2);box-shadow:var(--sh-2)}
+.ly-stage:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
+.ly-shot{
+  position:absolute;inset:0;display:grid;place-items:center;
+  opacity:0;pointer-events:none;
+  transition:opacity .34s var(--ease);
+}
+.ly-shot.on{opacity:1}
+.ly-shot img{max-width:100%;max-height:100%;object-fit:contain}
+@media(max-width:560px){ .ly-stage{height:300px} }
 /* 像素植物 · 卡内迷你轮播 */
 .pf-car{display:flex;flex-direction:column;gap:10px;min-width:0}
 .pf-stage{
@@ -522,11 +582,38 @@ footer .fright a:hover{color:var(--blue-deep)}
 }
 @media (max-width:560px){
   .stats > span{padding-right:16px;margin-right:16px}
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:16px 18px;margin-top:36px;padding-top:16px}
+  .stats > a{border-right:0;margin-right:0;padding-right:0;font-size:.76rem}
   .info{padding:26px 22px 24px}
-  h1{font-size:clamp(2.1rem,9.6vw,2.9rem)}
-  .brand b{display:none}
+  h1{font-size:clamp(2rem,8.8vw,2.6rem);line-height:1.1}
+  .hero{padding-top:104px;padding-bottom:52px}
+  .lede{margin-top:20px;font-size:.92rem;line-height:1.9}
+  .brand img{height:26px}
+  .who{border-left:0;padding-left:0}
+  .who i{display:none}
   .tok-grid{grid-template-columns:repeat(2,1fr)}
-  .clone{white-space:normal;word-break:break-all}
+  .clone{white-space:normal;word-break:normal;font-size:.68rem;padding:10px 12px}
+  h1{text-wrap:pretty}
+  h1 br{display:none}
+  /* 区块节奏收紧 */
+  .section{padding-block:60px 8px}
+  .sec-head{margin-bottom:34px;gap:12px}
+  .sec-head .aside{display:none}
+  /* 主推卡：截图不再留白边，链接排布整行 */
+  .ly-stage,.ds-stage,.pf-stage{height:auto;aspect-ratio:4/3;max-width:none}
+  .skill-links{gap:12px 16px}
+  .dl{width:100%;justify-content:center;padding:11px 16px}
+  /* 触点加大 */
+  .pf-arrow{width:34px;height:34px}
+  .pf-hud{gap:8px}
+  .pf-arrow svg{width:15px;height:15px}
+  /* 作品卡：预览略压短，正文不再顶格 */
+  .card--wide .preview{aspect-ratio:4/3}
+  .card--wide .info{padding:26px 22px 24px}
+  .about-lead p{font-size:.88rem;line-height:1.95}
+  .about-lead .sign{width:150px;margin-top:28px}
+  .contact-card{padding:34px 24px 32px}
+  footer .wrap{gap:12px}
 }
 @media (hover:none){
   .preview iframe{pointer-events:none}
@@ -542,15 +629,18 @@ footer .fright a:hover{color:var(--blue-deep)}
 <nav class="nav" id="nav">
   <a class="brand" href="#top" aria-label="回到顶部">
     <img src="assets/avatar.png" alt="黎月的手写签名">
-    <b>黎月</b>
+    <span class="who"><b>黎月</b><i>Front-end &amp; Interface</i></span>
   </a>
   <div class="links">
-    <a href="#work">作品</a>
-    <a href="#about">关于</a>
-    <a href="#skill">开源</a>
-    <a href="#contact">联系</a>
+    <a href="#work"><b>作品</b><i>Vibe coding</i></a>
+    <a href="#skill"><b>开源</b><i>Open source</i></a>
+    <a href="#about"><b>关于</b><i>About</i></a>
+    <a href="#contact"><b>联系</b><i>Contact</i></a>
   </div>
   <div class="status">
+    <a class="gh" href="https://github.com/LiyueDev" target="_blank" rel="noopener" aria-label="GitHub：LiyueDev" title="github.com/LiyueDev">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+    </a>
     <span class="pill"><i class="dot"></i>Open for work</span>
     <span class="clock" id="clock">--:--<span>CST</span></span>
   </div>
@@ -559,28 +649,32 @@ footer .fright a:hover{color:var(--blue-deep)}
 <!-- ══════ hero ══════ -->
 <header class="hero" id="top">
   <div class="wrap">
-    <div class="eyebrow">Front-end · Interface · 2026</div>
+    <div class="eyebrow cn">你好，我是黎月</div>
     <h1>
-      <span class="w" style="--i:0">Quiet</span>
-      <span class="w" style="--i:1">interfaces</span><br>
-      <span class="w" style="--i:2">that</span>
-      <span class="w" style="--i:3">answer</span>
-      <span class="w accent" style="--i:4">back.</span>
+      <span class="w" style="--i:0">Complex</span>
+      <span class="w" style="--i:1">under</span>
+      <span class="w" style="--i:2">the</span>
+      <span class="w" style="--i:3">hood.</span><br>
+      <span class="w" style="--i:4">Quiet</span>
+      <span class="w" style="--i:5">on</span>
+      <span class="w" style="--i:6">the</span>
+      <span class="w accent" style="--i:7">surface.</span>
     </h1>
-    <p class="hero-zh">安静的界面，会回应你。</p>
+    <p class="hero-zh">把复杂留给代码，把安静留给界面。</p>
     <p class="lede">
-      做前端和界面，用 <b>HTML / CSS / 原生 JS / Canvas</b>。不做大而全，只把一个动作做准。点下去有回应，松手有回落 —— 作品都是单文件，双击就能跑。
+      不追求大而全的堆砌，只专注把交互的每一个细节做准。让复杂的逻辑隐于幕后，让指尖留下恰到好处的回响。点下去有回应，松手有回落，仅此而已。
     </p>
     <div class="stats">
-      <span><b>02</b>件作品</span>
-      <span><b>00</b>个第三方依赖</span>
-      <span><b>00</b>个构建步骤</span>
+      <a href="#work">Vibe coding<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg></a>
+      <a href="#skill">Open source<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg></a>
+      <a href="#contact">Contact<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg></a>
+      <a href="#about">About<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg></a>
     </div>
 
     <aside class="hero-index" aria-label="作品索引">
       <span class="lbl">Index</span>
-      <a href="#work"><b>01</b>把雨接成星光</a>
-      <a href="#work"><b>02</b>风过梨花</a>
+      <a href="#work"><b>01</b>把风递给花瓣</a>
+      <a href="#work"><b>02</b>把雨接成星光</a>
     </aside>
   </div>
   <div class="scrollcue"><i></i>Scroll</div>
@@ -591,12 +685,46 @@ footer .fright a:hover{color:var(--blue-deep)}
   <div class="wrap">
     <div class="sec-head reveal">
       <span class="num">01</span>
-      <h2>Selected work</h2>
+      <h2>Vibe coding work</h2>
       <span class="aside">2025 — 2026 · 两件</span>
     </div>
 
     <!-- 01 -->
     <article class="card card--wide reveal">
+      <div class="preview" data-src="wind-tree.html?embed=1" data-title="把风递给花瓣 · 实时预览">
+        <div class="cover">
+          <strong>Wind · Live</strong>
+          <em>实时运行中</em>
+        </div>
+      </div>
+      <div class="info">
+        <div class="idxrow">
+          <span class="idx">01 — Sandbox</span>
+          <span class="state"><i></i>Live</span>
+        </div>
+        <h3>把风递给花瓣</h3>
+        <div class="sub">Wind tree · 像素花树</div>
+        <p class="en">Pixel blossoms wired to a real skeleton — wind walks down the branches, nothing is a loop.</p>
+        <p class="zh">两百多根关节连成一棵像素花树。风从根到枝，一段一段传下去，不是循环动画。点一下，花瓣松手；按住枝条，能把它拉弯。深浅配色、风级、背景都在页面里直接切，整页单文件，没有素材包。</p>
+        <div class="tags">
+          <span class="tag">骨骼动画</span>
+          <span class="tag">像素美术</span>
+          <span class="tag">风 · 声音</span>
+        </div>
+        <a class="src" href="https://github.com/LiyueDev" target="_blank" rel="noopener">
+          github.com/LiyueDev
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
+        </a>
+        <a class="open" href="wind-tree.html" target="_blank" rel="noopener">
+          打开作品
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
+        </a>
+      </div>
+    </article>
+
+
+    <!-- 02 -->
+    <article class="card card--wide reveal d1" style="margin-top:22px">
       <div class="preview" data-src="star-rain.html?embed=1" data-title="把雨接成星光 · 实时预览">
         <div class="cover">
           <strong>Canvas · Live</strong>
@@ -605,7 +733,7 @@ footer .fright a:hover{color:var(--blue-deep)}
       </div>
       <div class="info">
         <div class="idxrow">
-          <span class="idx">01 — Interaction</span>
+          <span class="idx">02 — Interaction</span>
           <span class="state"><i></i>Live</span>
         </div>
         <h3>把雨接成星光</h3>
@@ -629,90 +757,6 @@ footer .fright a:hover{color:var(--blue-deep)}
       </div>
     </article>
 
-    <!-- 02 -->
-    <article class="card card--wide reveal d1" style="margin-top:22px">
-      <div class="preview" data-src="wind-tree.html?embed=1" data-title="风过梨花 · 实时预览">
-        <div class="cover">
-          <strong>Wind · Live</strong>
-          <em>实时运行中</em>
-        </div>
-      </div>
-      <div class="info">
-        <div class="idxrow">
-          <span class="idx">02 — Sandbox</span>
-          <span class="state"><i></i>Live</span>
-        </div>
-        <h3>风过梨花</h3>
-        <div class="sub">Wind tree · 像素花树</div>
-        <p class="en">Pixel blossoms wired to a real skeleton — wind walks down the branches, nothing is a loop.</p>
-        <p class="zh">两百多根关节连成一棵像素花树。风从根到枝，一段一段传下去，不是循环动画。点一下，花瓣松手；按住枝条，能把它拉弯。深浅配色、风级、背景都在页面里直接切，整页单文件，没有素材包。</p>
-        <div class="tags">
-          <span class="tag">骨骼动画</span>
-          <span class="tag">像素美术</span>
-          <span class="tag">风 · 声音</span>
-        </div>
-        <a class="src" href="https://github.com/LiyueDev" target="_blank" rel="noopener">
-          github.com/LiyueDev
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
-        </a>
-        <a class="open" href="wind-tree.html" target="_blank" rel="noopener">
-          打开作品
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
-        </a>
-      </div>
-    </article>
-  </div>
-</section>
-
-<!-- ══════ about ══════ -->
-<section class="section" id="about">
-  <div class="wrap">
-    <div class="sec-head reveal">
-      <span class="num">02</span>
-      <h2>About</h2>
-      <span class="aside">怎么做事</span>
-    </div>
-
-    <div class="about">
-      <div class="about-lead reveal">
-        <h2>少一点脚手架，<br>多一点<em>手感</em>。</h2>
-        <p>我是黎月，做前端和界面，也写一点桌面端。一般从一张白纸开始：先定一条基线、一个主色，再把间距和动效一格一格推到刚好 —— 不多一格，也不少一格。白天写代码，晚上养像素和雨。</p>
-        <img class="sign" src="assets/avatar.png" alt="手写签名">
-      </div>
-
-      <div class="reveal d1">
-        <ul class="principles">
-          <li>
-            <span class="n">01</span>
-            <div>
-              <h4>少文件，少出错</h4>
-              <p>没有构建，没有依赖树。一个文件拷到任何电脑上就能打开 —— 五年前做的那个也一样。</p>
-            </div>
-          </li>
-          <li>
-            <span class="n">02</span>
-            <div>
-              <h4>先手感，再功能</h4>
-              <p>拖起来要有重量，松手要有缓出，动效短、收得住。功能可以后补，手感补不回来。</p>
-            </div>
-          </li>
-          <li>
-            <span class="n">03</span>
-            <div>
-              <h4>留白不是空</h4>
-              <p>少放一个元素，视线就多一次呼吸。克制是设计的一部分，不是妥协。</p>
-            </div>
-          </li>
-        </ul>
-        <div class="stack">
-          <span class="chip"><i></i>HTML / CSS</span>
-          <span class="chip"><i></i>Vanilla JS</span>
-          <span class="chip"><i></i>Canvas 2D</span>
-          <span class="chip"><i></i>WebGL</span>
-          <span class="chip"><i></i>PySide6 / Qt</span>
-        </div>
-      </div>
-    </div>
   </div>
 </section>
 
@@ -720,12 +764,72 @@ footer .fright a:hover{color:var(--blue-deep)}
 <section class="section" id="skill">
   <div class="wrap">
     <div class="sec-head reveal">
-      <span class="num">03</span>
+      <span class="num">02</span>
       <h2>Open source</h2>
-      <span class="aside">两个 Skill，都公开在 GitHub</span>
+      <span class="aside">一个主推项目，两个 Skill</span>
     </div>
 
     <div class="skill-card reveal">
+      <div class="skill-copy">
+        <div class="idxrow">
+          <span class="idx">Main project — Desktop</span>
+          <span class="state"><i></i>Apache-2.0</span>
+        </div>
+        <h3 class="ly-title"><svg class="ly-mark" viewBox="60 26 136 204" aria-hidden="true" focusable="false"><path d="M70 54 Q80 36 92 46 Q102 56 94 90 Q84 132 82 160 Q80 182 96 182 Q114 182 124 160 Q134 138 136 114 Q142 144 154 166 Q164 180 176 162 Q184 148 184 134 Q186 170 174 200 Q164 220 138 212" fill="none" stroke="#2F6BEE" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/></svg><span>LyLaunch · 轻启</span></h3>
+        <p class="en">A hotkey launcher for Windows. Local only — no account, no cloud.</p>
+        <p class="zh">按 Alt+Space 浮窗弹出，打拼音首字母就能开本机任意应用，Esc 收起。剪贴板历史、翻译、截图、OCR 都做成插件，一个插件就是一个目录加一个 plugin.json，能停、能换热键、能排顺序。纯本地跑，不设账号，不联网也能用。</p>
+        <div class="clone">git clone <wbr>https://<wbr>github.com/<wbr>LiyueDev/<wbr>LyLaunch.git</div>
+        <div class="skill-links">
+          <a class="dl" href="https://github.com/LiyueDev/LyLaunch/releases/tag/v1.0.0" target="_blank" rel="noopener" title="Windows 安装包，约 159 MB">
+            下载 v1.0.0
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>
+          </a>
+          <a class="open" href="https://github.com/LiyueDev/LyLaunch" target="_blank" rel="noopener">
+            在 GitHub 上查看
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
+          </a>
+          <a class="open alt" href="https://github.com/LiyueDev/LyLaunch/blob/main/CHANGELOG.md" target="_blank" rel="noopener">
+            更新日志
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <div class="skill-tokens">
+        <span class="lbl">Screens</span>
+        <div class="ly-car">
+          <div class="ly-stage" id="lyStage" tabindex="0" role="group" aria-label="LyLaunch 界面截图，点击看下一张">
+            <div class="ly-shot on" data-key="main" data-cn="主浮窗">
+              <img src="assets/lylaunch-main.png" alt="LyLaunch 主浮窗：搜索框、插件、应用、系统应用三组图标" loading="lazy">
+            </div>
+            <div class="ly-shot" data-key="ai" data-cn="本地 AI">
+              <img src="assets/lylaunch-ai.png" alt="本地 AI 对话插件：Qwen3.5-9B 本机推理，不联网，内容不出这台机器" loading="lazy">
+            </div>
+            <div class="ly-shot" data-key="ocr" data-cn="文档识别">
+              <img src="assets/lylaunch-ocr.png" alt="文档识别插件：拖入 PDF 与图片，本地模型 XiaoMi-OCR-0 推理" loading="lazy">
+            </div>
+            <div class="ly-shot" data-key="hw" data-cn="硬件信息">
+              <img src="assets/lylaunch-hw.png" alt="硬件信息插件：系统、处理器、主板、内存、显卡、显示器、硬盘" loading="lazy">
+            </div>
+          </div>
+          <div class="pf-hud">
+            <span class="pf-no" id="lyNo">01 / 03</span>
+            <span class="pf-key" id="lyKey">main</span>
+            <span class="pf-cn" id="lyCn">主浮窗</span>
+            <span class="pf-dots" id="lyDots" role="tablist" aria-label="切换截图"></span>
+            <button class="pf-arrow" id="lyPrev" type="button" aria-label="上一张">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6 9 12l6 6"/></svg>
+            </button>
+            <button class="pf-arrow" id="lyNext" type="button" aria-label="下一张">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="tok-note">22k+ 行 Python · 54 个模块 · 6 个内置插件 · PySide6 / Win32</div>
+      </div>
+    </div>
+
+    <div class="skill-card reveal d1" style="margin-top:18px">
       <div class="skill-copy">
         <div class="idxrow">
           <span class="idx">Skill 01 — Design style</span>
@@ -734,7 +838,7 @@ footer .fright a:hover{color:var(--blue-deep)}
         <h3>liyue-air-design</h3>
         <p class="en">A visual style skill for AI agents — how things look, not how pages are built.</p>
         <p class="zh">只谈风格，不管版式。这一页的配色、字体、圆角、阴影、缓动，都出自这份 SKILL.md；仓库里另有 token 表，色值可以直接抄。</p>
-        <div class="clone">git clone https://github.com/LiyueDev/liyue-air-design.git</div>
+        <div class="clone">git clone <wbr>https://<wbr>github.com/<wbr>LiyueDev/<wbr>liyue-air-design.git</div>
         <a class="open" href="https://github.com/LiyueDev/liyue-air-design" target="_blank" rel="noopener">
           在 GitHub 上查看
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
@@ -841,7 +945,7 @@ footer .fright a:hover{color:var(--blue-deep)}
         <h3>liyue-pixel-plants</h3>
         <p class="en">A pixel-plant skill — trees that sway, without writing an engine.</p>
         <p class="zh">引擎已经在库里：桃、樱、梨、银杏、灌木、松六种预设，风、落花、摇晃、掉叶、点击抖动都封好了。零依赖的原生 Canvas，一行 PF.mount() 就长出一棵树。</p>
-        <div class="clone">git clone https://github.com/LiyueDev/liyue-pixel-plants.git</div>
+        <div class="clone">git clone <wbr>https://<wbr>github.com/<wbr>LiyueDev/<wbr>liyue-pixel-plants.git</div>
         <div class="skill-links">
           <a class="open" href="https://github.com/LiyueDev/liyue-pixel-plants" target="_blank" rel="noopener">
             在 GitHub 上查看
@@ -881,6 +985,58 @@ footer .fright a:hover{color:var(--blue-deep)}
   </div>
 </section>
 
+<!-- ══════ about ══════ -->
+<section class="section" id="about">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="num">03</span>
+      <h2>About</h2>
+      <span class="aside">怎么做事</span>
+    </div>
+
+    <div class="about">
+      <div class="about-lead reveal">
+        <h2>少一点脚手架，<br>多一点<em>手感</em>。</h2>
+        <p>我是黎月，独立开发者。我用 Vibe Coding 的方式，写出了两万多行的本地 AI 工&#8288;具&#8288;（LyLaunch），也把对界面的审美，做成了一套开源的 Agent Skill。把复杂留给代码，把安静留给界面。</p>
+        <img class="sign" src="assets/avatar.png" alt="手写签名">
+      </div>
+
+      <div class="reveal d1">
+        <ul class="principles">
+          <li>
+            <span class="n">01</span>
+            <div>
+              <h4>少文件，少出错</h4>
+              <p>没有构建，没有依赖树。一个文件拷到任何电脑上就能打开 —— 五年前做的那个也一样。</p>
+            </div>
+          </li>
+          <li>
+            <span class="n">02</span>
+            <div>
+              <h4>先手感，再功能</h4>
+              <p>拖起来要有重量，松手要有缓出，动效短、收得住。功能可以后补，手感补不回来。</p>
+            </div>
+          </li>
+          <li>
+            <span class="n">03</span>
+            <div>
+              <h4>留白不是空</h4>
+              <p>少放一个元素，视线就多一次呼吸。克制是设计的一部分，不是妥协。</p>
+            </div>
+          </li>
+        </ul>
+        <div class="stack">
+          <span class="chip"><i></i>HTML / CSS</span>
+          <span class="chip"><i></i>Vanilla JS</span>
+          <span class="chip"><i></i>Canvas 2D</span>
+          <span class="chip"><i></i>WebGL</span>
+          <span class="chip"><i></i>PySide6 / Qt</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ══════ contact ══════ -->
 <section class="section" id="contact">
   <div class="wrap">
@@ -888,16 +1044,16 @@ footer .fright a:hover{color:var(--blue-deep)}
       <span class="glow"></span>
       <div>
         <div class="idx">04 — Contact</div>
-        <h2>有想做的东西？<br>写封信来。</h2>
-        <a class="mailto" href="mailto:hi@liy.dev">
-          hi@liy.dev
+        <h2>有想做的东西？<br>去 GitHub 找我。</h2>
+        <a class="mailto" href="https://github.com/LiyueDev" target="_blank" rel="noopener">
+          github.com/LiyueDev
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M13 6l6 6-6 6"/></svg>
         </a>
       </div>
       <div class="contact-side">
-        <p>接前端实现、交互细节，也接单文件的小玩意。<br>平时两天内回信。</p>
+        <p>代码都在 GitHub 上。<br>有想法，开个 issue。</p>
         <div class="links2">
-          <a href="https://github.com/LiyueDev" target="_blank" rel="noopener">GitHub</a>
+          <a href="https://github.com/LiyueDev/LyLaunch" target="_blank" rel="noopener">LyLaunch</a>
           <a href="https://github.com/LiyueDev/liyue-air-design" target="_blank" rel="noopener">设计系统</a>
           <a href="#top">回到顶部</a>
         </div>
@@ -908,7 +1064,7 @@ footer .fright a:hover{color:var(--blue-deep)}
 
 <footer>
   <div class="wrap" style="display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;width:100%">
-    <small>© <span id="year">2026</span> 黎月 · 手写页面，没有构建步骤</small>
+    <small>© <span id="year">2026</span> 黎月 · LiyueDev</small>
     <div class="fright"><span>UTC+8</span><span>No build step</span><a href="https://github.com/LiyueDev" target="_blank" rel="noopener">Open source ↗</a></div>
   </div>
 </footer>
@@ -1182,6 +1338,68 @@ footer .fright a:hover{color:var(--blue-deep)}
 
   document.getElementById('dsPrev').addEventListener('click', function () { go(idx - 1); });
   document.getElementById('dsNext').addEventListener('click', function () { go(idx + 1); });
+
+  label();
+})();
+</script>
+
+<script>
+/* ── LyLaunch 卡片内的截图轮播 ── */
+(function () {
+  var stage = document.getElementById('lyStage');
+  if (!stage) return;
+
+  var shots = [].slice.call(stage.querySelectorAll('.ly-shot'));
+  var idx = 0, busy = false;
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var noEl = document.getElementById('lyNo');
+  var keyEl = document.getElementById('lyKey');
+  var cnEl = document.getElementById('lyCn');
+  var dotsEl = document.getElementById('lyDots');
+
+  shots.forEach(function (s, n) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.setAttribute('role', 'tab');
+    b.setAttribute('aria-label', s.dataset.cn);
+    b.innerHTML = '<i></i>';
+    b.addEventListener('click', function (e) { e.stopPropagation(); go(n); });
+    dotsEl.appendChild(b);
+  });
+  var dots = [].slice.call(dotsEl.children);
+
+  function label() {
+    noEl.textContent = ('0' + (idx + 1)).slice(-2) + ' / ' + ('0' + shots.length).slice(-2);
+    keyEl.textContent = shots[idx].dataset.key;
+    cnEl.textContent = shots[idx].dataset.cn;
+    dots.forEach(function (d, n) {
+      d.setAttribute('aria-selected', n === idx ? 'true' : 'false');
+    });
+  }
+
+  function go(next) {
+    next = (next + shots.length) % shots.length;
+    if (next === idx || busy) return;
+    busy = true;
+    shots[next].classList.add('on');
+    shots[idx].classList.remove('on');
+    idx = next;
+    label();
+    setTimeout(function () { busy = false; }, reduce ? 0 : 340);
+  }
+
+  document.getElementById('lyPrev').addEventListener('click', function (e) {
+    e.stopPropagation(); go(idx - 1);
+  });
+  document.getElementById('lyNext').addEventListener('click', function (e) {
+    e.stopPropagation(); go(idx + 1);
+  });
+  stage.addEventListener('click', function () { go(idx + 1); });
+  stage.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowLeft') { e.preventDefault(); go(idx - 1); }
+    else if (e.key === 'ArrowRight' || e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(idx + 1); }
+  });
 
   label();
 })();
