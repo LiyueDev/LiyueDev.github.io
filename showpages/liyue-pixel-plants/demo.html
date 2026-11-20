@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>pixel-flora · 六种植物</title>
+<style>
+  :root{
+    --ink:#161C28; --ink2:#5F6570; --ink3:#8A919F; --ink4:#9AA3B2;
+    --accent:#2F6BEE; --accent-deep:#2359D6; --line:#D3E0F5; --soft:#DCE9FF;
+    --font:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    --mono:"SF Mono",ui-monospace,"Cascadia Mono",Consolas,monospace;
+    --ease:cubic-bezier(.22,.61,.36,1);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{
+    background:#F5F5FF;color:var(--ink);font-family:var(--font);
+    overflow:hidden;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  }
+
+  #stage{position:fixed;inset:0;opacity:1;transition:opacity .42s var(--ease)}
+  #stage.is-out{opacity:0}
+
+  .ui{position:fixed;inset:0;pointer-events:none;z-index:5}
+
+  /* 左上角眉标 */
+  .kicker{
+    position:absolute;left:clamp(18px,4vw,44px);top:clamp(16px,3.6vw,38px);
+    display:flex;align-items:center;gap:10px;
+    font-family:var(--mono);font-size:.62rem;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--ink3);
+  }
+  .kicker i{width:22px;height:1px;background:var(--accent);opacity:.7}
+  .kicker b{font-weight:500;color:var(--accent);letter-spacing:.24em}
+
+  /* 左下角说明 */
+  .caption{
+    position:absolute;left:clamp(18px,4vw,44px);bottom:clamp(84px,9vh,110px);
+    max-width:min(380px,66vw);
+    transition:opacity .3s var(--ease),transform .3s var(--ease);
+  }
+  .caption.is-out{opacity:0;transform:translateY(8px)}
+  .cap-meta{
+    display:flex;align-items:center;gap:12px;
+    font-family:var(--mono);font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--ink4);
+  }
+  .cap-meta span:first-child{color:var(--accent-deep);letter-spacing:.14em}
+  .cap-meta em{font-style:normal;width:18px;height:1px;background:var(--line)}
+  .cap-cn{
+    margin:8px 0 0;font-size:clamp(1.7rem,4.4vw,2.3rem);line-height:1.2;
+    font-weight:700;letter-spacing:-.035em;
+  }
+  .cap-note{
+    margin-top:10px;font-size:.84rem;line-height:1.9;color:var(--ink2);
+    max-width:24ch;letter-spacing:.01em;
+  }
+
+  /* 左右切换 */
+  .nav{
+    position:absolute;top:50%;transform:translateY(-50%);
+    width:46px;height:46px;display:grid;place-items:center;
+    border:1px solid var(--line);border-radius:12px;
+    background:rgba(255,255,255,.78);backdrop-filter:blur(10px);
+    color:var(--ink2);font-size:1.1rem;line-height:1;cursor:pointer;
+    transition:color .28s var(--ease),border-color .28s var(--ease),background .28s var(--ease),transform .28s var(--ease);
+    pointer-events:auto;
+  }
+  .nav:hover{color:var(--accent-deep);border-color:var(--accent);background:#fff}
+  .nav:active{transform:translateY(-50%) scale(.96)}
+  .nav:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+  .prev{left:clamp(8px,2vw,26px)}
+  .next{right:clamp(8px,2vw,26px)}
+
+  /* 圆点 */
+  .dots{
+    position:absolute;left:50%;bottom:clamp(26px,4.6vh,42px);transform:translateX(-50%);
+    display:flex;align-items:center;gap:4px;pointer-events:auto;
+  }
+  .dot{
+    width:34px;height:34px;display:grid;place-items:center;
+    border:0;background:none;cursor:pointer;padding:0;border-radius:50%;
+  }
+  .dot:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+  .dot i{
+    display:block;width:7px;height:7px;border-radius:50%;
+    background:#B9C6DD;transition:background .3s var(--ease),transform .3s var(--ease);
+  }
+  .dot:hover i{background:var(--accent-deep)}
+  .dot.on i{background:var(--accent);transform:scale(1.5)}
+
+  .hint{
+    position:absolute;right:clamp(18px,4vw,44px);bottom:clamp(30px,4.8vh,44px);
+    font-family:var(--mono);font-size:.6rem;letter-spacing:.12em;color:var(--ink4);
+  }
+
+  @media (max-width:720px){
+    .kicker{font-size:.56rem;letter-spacing:.18em}
+    .nav{width:40px;height:40px;border-radius:10px}
+    .cap-note{display:none}
+    .hint{display:none}
+    .dots{bottom:26px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    #stage,.caption,.dot i{transition:none}
+  }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+
+<div class="ui">
+  <div class="kicker"><i></i><span>pixel-flora</span><b>六种植物</b></div>
+
+  <div class="caption" id="caption">
+    <div class="cap-meta"><span id="capNo">01 / 06</span><em></em><span id="capEn">peach</span></div>
+    <h1 class="cap-cn" id="capCn">桃</h1>
+    <p class="cap-note" id="capNote">矮一点、冠更圆、枝更外张，粉更暖。</p>
+  </div>
+
+  <button class="nav prev" id="prev" type="button" aria-label="上一株">‹</button>
+  <button class="nav next" id="next" type="button" aria-label="下一株">›</button>
+
+  <div class="dots" id="dots" role="tablist" aria-label="切换植物"></div>
+  <p class="hint">← → 切换 · 圆点直达</p>
+</div>
+
+<script src="pixel-flora.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  /* 桃排第一 */
+  var SLIDES = [
+    { k: "peach",  cn: "桃",   note: "矮一点、冠更圆、枝更外张，粉更暖。" },
+    { k: "cherry", cn: "樱",   note: "更矮更宽，粉近白，落得最勤。" },
+    { k: "pear",   cn: "梨",   note: "高干、竖椭圆冠，花开得干净。" },
+    { k: "ginkgo", cn: "银杏", note: "高直干，上尖下宽，金叶压满枝。" },
+    { k: "bush",   cn: "灌木", note: "没有干，贴地长成一丛绿。" },
+    { k: "pine",   cn: "松",   note: "瘦高锥冠，墨绿针叶，风里最稳。" }
+  ];
+
+  var stage = document.getElementById("stage");
+  var caption = document.getElementById("caption");
+  var capNo = document.getElementById("capNo");
+  var capEn = document.getElementById("capEn");
+  var capCn = document.getElementById("capCn");
+  var capNote = document.getElementById("capNote");
+  var dotsEl = document.getElementById("dots");
+
+  var idx = 0;
+  var cur = null;
+  var busy = false;
+
+  /* 支持 ?p=cherry 直达某株 */
+  var q = new URLSearchParams(location.search);
+  var start = q.get("p");
+  if (start) {
+    for (var i = 0; i < SLIDES.length; i++) {
+      if (SLIDES[i].k === start) { idx = i; break; }
+    }
+  }
+
+  /* 圆点 */
+  SLIDES.forEach(function (s, n) {
+    var b = document.createElement("button");
+    b.className = "dot";
+    b.type = "button";
+    b.setAttribute("role", "tab");
+    b.setAttribute("aria-label", s.cn);
+    b.innerHTML = "<i></i>";
+    b.addEventListener("click", function (e) { e.stopPropagation(); go(n); });
+    dotsEl.appendChild(b);
+  });
+  var dots = [].slice.call(dotsEl.children);
+
+  function paint(idx) {
+    var s = SLIDES[idx];
+    capNo.textContent = ("0" + (idx + 1)).slice(-2) + " / " + ("0" + SLIDES.length).slice(-2);
+    capEn.textContent = s.k;
+    capCn.textContent = s.cn;
+    capNote.textContent = s.note;
+    dots.forEach(function (d, n) {
+      d.classList.toggle("on", n === idx);
+      d.setAttribute("aria-selected", n === idx ? "true" : "false");
+    });
+  }
+
+  function mount(idx) {
+    if (cur) { try { cur.stop(); } catch (e) {} cur = null; }
+    stage.innerHTML = "";
+    cur = PF.mount(stage, { name: SLIDES[idx].k, strength: 0.92, gusts: 0.8 });
+  }
+
+  function go(next, first) {
+    next = (next + SLIDES.length) % SLIDES.length;
+    if (!first && next === idx) return;
+    if (busy) return;
+
+    if (first) { idx = next; paint(idx); mount(idx); return; }
+
+    busy = true;
+    stage.classList.add("is-out");
+    caption.classList.add("is-out");
+    setTimeout(function () {
+      idx = next;
+      paint(idx);
+      mount(idx);
+      requestAnimationFrame(function () {
+        stage.classList.remove("is-out");
+        caption.classList.remove("is-out");
+        setTimeout(function () { busy = false; }, 380);
+      });
+    }, 400);
+  }
+
+  document.getElementById("prev").addEventListener("click", function () { go(idx - 1); });
+  document.getElementById("next").addEventListener("click", function () { go(idx + 1); });
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "ArrowLeft") { e.preventDefault(); go(idx - 1); }
+    if (e.key === "ArrowRight") { e.preventDefault(); go(idx + 1); }
+  });
+
+  /* 触屏左右滑 */
+  var sx = 0, sy = 0, tracking = false;
+  stage.addEventListener("pointerdown", function (e) {
+    tracking = true; sx = e.clientX; sy = e.clientY;
+  });
+  window.addEventListener("pointerup", function (e) {
+    if (!tracking) return;
+    tracking = false;
+    var dx = e.clientX - sx, dy = e.clientY - sy;
+    if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy)) go(dx < 0 ? idx + 1 : idx - 1);
+  });
+
+  go(idx, true);
+})();
+</script>
+</body>
+</html>

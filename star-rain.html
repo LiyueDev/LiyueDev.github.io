@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>把雨接成星光</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; background: #050e26; }
+  canvas { display: block; width: 100vw; height: 100vh; }
+
+  /* ============ 设置栏 ============ */
+  :root { --ln: rgba(198, 224, 255, .14); --fg: #cfe3ff; }
+
+  #cfgBtn {
+    position: fixed; top: 18px; right: 18px; z-index: 20;
+    width: 38px; height: 38px; border-radius: 50%;
+    display: grid; place-items: center;
+    background: rgba(8, 20, 44, .62);
+    border: 1px solid rgba(198, 224, 255, .16);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    color: #cfe3ff; cursor: pointer;
+    transition: border-color .2s ease, background .2s ease;
+  }
+  #cfgBtn:hover { border-color: rgba(198, 224, 255, .38); background: rgba(12, 28, 58, .72); }
+  #cfgBtn[aria-expanded="true"] { border-color: rgba(198, 224, 255, .42); }
+
+  #panel {
+    position: fixed; top: 66px; right: 18px; z-index: 20;
+    width: 268px; padding: 14px 16px 13px;
+    border-radius: 14px;
+    background: rgba(7, 17, 38, .60);
+    border: 1px solid var(--ln);
+    box-shadow: 0 18px 44px rgba(2, 8, 20, .5);
+    -webkit-backdrop-filter: blur(14px) saturate(120%);
+    backdrop-filter: blur(14px) saturate(120%);
+    color: var(--fg);
+    font: 400 12px/1.45 ui-sans-serif, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    letter-spacing: .02em;
+    transition: opacity .26s ease, transform .26s cubic-bezier(.2, .8, .3, 1);
+  }
+  #panel[data-open="false"] { opacity: 0; transform: translateY(-8px) scale(.985); pointer-events: none; }
+
+  .hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .hd .t { font-size: 12px; color: rgba(207, 227, 255, .92); }
+  .hd .t::before {
+    content: ""; display: inline-block; width: 3px; height: 3px; border-radius: 50%;
+    background: #8fb8ff; margin-right: 7px; vertical-align: 2px; opacity: .85;
+  }
+  #resetBtn {
+    border: 0; background: none; padding: 2px 0; cursor: pointer;
+    font: inherit; font-size: 11px; color: rgba(207, 227, 255, .45);
+    transition: color .2s;
+  }
+  #resetBtn:hover { color: rgba(207, 227, 255, .85); }
+
+  .row + .row { margin-top: 13px; }
+  .lb { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 3px; }
+  .lb > span { color: rgba(207, 227, 255, .58); }
+  .val { display: flex; align-items: center; gap: 4px; color: rgba(207, 227, 255, .9); font-variant-numeric: tabular-nums; }
+  .val b { font-weight: 500; font-size: 11px; }
+  #dirArrow { display: inline-block; width: 12px; text-align: center; font-size: 12px; color: #8fb8ff; transition: transform .1s linear; }
+
+  input[type="range"] {
+    -webkit-appearance: none; appearance: none;
+    display: block; width: 100%; height: 16px; background: transparent; cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-runnable-track {
+    height: 2px; border-radius: 2px;
+    background: linear-gradient(90deg,
+      rgba(146, 186, 255, .62) var(--fill, 50%),
+      rgba(255, 255, 255, .13) var(--fill, 50%));
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 10px; height: 10px; margin-top: -4px; border-radius: 50%;
+    background: #dfeaff; box-shadow: 0 0 0 3px rgba(120, 164, 240, .18);
+    transition: box-shadow .2s ease;
+  }
+  input[type="range"]:hover::-webkit-slider-thumb,
+  input[type="range"]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 5px rgba(120, 164, 240, .24); }
+  input[type="range"]::-moz-range-track { height: 2px; border-radius: 2px; background: rgba(255, 255, 255, .13); }
+  input[type="range"]::-moz-range-progress { height: 2px; border-radius: 2px; background: rgba(146, 186, 255, .62); }
+  input[type="range"]::-moz-range-thumb { width: 10px; height: 10px; border: 0; border-radius: 50%; background: #dfeaff; }
+
+  .ft { margin-top: 13px; padding-top: 9px; border-top: 1px solid var(--ln); font-size: 10.5px; color: rgba(207, 227, 255, .32); }
+
+  @media (max-width: 560px) {
+    #cfgBtn { top: 12px; right: 12px; width: 34px; height: 34px; }
+    #panel { top: 56px; right: 12px; width: min(268px, calc(100vw - 24px)); padding: 13px 14px 12px; }
+  }
+</style>
+</head>
+<body>
+<canvas id="stage"></canvas>
+
+<button id="cfgBtn" aria-expanded="true" aria-controls="panel" title="场景设置（H 键收起）">
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+       stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+    <path d="M4 8h8M18 8h2M4 16h2M10 16h10"/>
+    <circle cx="14" cy="8" r="2.2"/><circle cx="8" cy="16" r="2.2"/>
+  </svg>
+</button>
+
+<div id="panel" data-open="true">
+  <div class="hd">
+    <span class="t">场景设置</span>
+    <button id="resetBtn" type="button">重置</button>
+  </div>
+
+  <div class="row">
+    <div class="lb"><span>风向</span><span class="val"><i id="dirArrow">→</i><b id="dirVal">0°</b></span></div>
+    <input type="range" id="dir" min="-180" max="180" step="1" value="0" aria-label="风向">
+  </div>
+
+  <div class="row">
+    <div class="lb"><span>风速</span><span class="val"><b id="spdVal">42</b></span></div>
+    <input type="range" id="speed" min="0" max="100" step="1" value="42" aria-label="风速">
+  </div>
+
+  <div class="row">
+    <div class="lb"><span>雨密度</span><span class="val"><b id="denVal">62%</b></span></div>
+    <input type="range" id="density" min="0" max="100" step="1" value="62" aria-label="雨密度">
+  </div>
+
+  <div class="row">
+    <div class="lb"><span>下落速度</span><span class="val"><b id="fallVal">×1.0</b></span></div>
+    <input type="range" id="fall" min="0.5" max="2" step="0.05" value="1" aria-label="下落速度">
+  </div>
+
+  <div class="ft">拖到最右可停雨，H 键收起面板</div>
+</div>
+<script>
+(function () {
+  const cv  = document.getElementById('stage');
+  const ctx = cv.getContext('2d');
+
+  let W = 0, H = 0, dpr = 1;
+  let bgGrad = null, groundGrad = null;
+
+  const rand = (a, b) => a + Math.random() * (b - a);
+  const clamp = (v, a, b) => v < a ? a : (v > b ? b : v);
+
+  /* ============ 可调参数（设置栏） ============ */
+  const DEFAULTS = { dir: 0, speed: 42, density: 62, fall: 1 };
+  const cfg = Object.assign({}, DEFAULTS);
+  const STORE_KEY = 'star-rain-cfg';
+
+  const uiEl = {
+    dir:     document.getElementById('dir'),
+    speed:   document.getElementById('speed'),
+    density: document.getElementById('density'),
+    fall:    document.getElementById('fall')
+  };
+  const outEl = {
+    dir:     document.getElementById('dirVal'),
+    speed:   document.getElementById('spdVal'),
+    density: document.getElementById('denVal'),
+    fall:    document.getElementById('fallVal')
+  };
+  const dirArrow = document.getElementById('dirArrow');
+
+  // 密度 → 上限（0 表示一滴都没有）
+  const rainCap  = () => Math.round(cfg.density * 9);
+  const sparkCap = () => Math.round(cfg.density * 3.5);
+
+  /* ============ 五角星路径 ============ */
+  const starPath = new Path2D();
+  for (let i = 0; i < 10; i++) {
+    const r = (i % 2 === 0) ? 1 : 0.42;
+    const a = -Math.PI / 2 + i * Math.PI / 5;
+    const px = Math.cos(a) * r, py = Math.sin(a) * r;
+    if (i === 0) starPath.moveTo(px, py); else starPath.lineTo(px, py);
+  }
+  starPath.closePath();
+
+  /* ============ 布局 ============ */
+  const umb = { a: 0, b: 0, cx: 0, cy: 0, baseX: 0, topY: 0 };
+
+  function layout() {
+    umb.a     = Math.min(W * 0.19, 230);
+    umb.b     = umb.a * 0.78;      // 略扁，更像伞
+    umb.topY  = H * 0.40;
+    umb.baseX = W * 0.5;
+    umb.cx    = umb.baseX;
+    umb.cy    = umb.topY + umb.b;
+  }
+
+  /* 弧形地平线（行星表面） */
+  function groundY(x) {
+    const dx = (x - W * 0.5) / (W * 0.55);
+    return H * 0.855 - dx * dx * H * 0.075;
+  }
+
+  /* ============ 背景星点 ============ */
+  let bgStars = [];
+  function buildStars() {
+    bgStars = [];
+    const n = Math.round((W * H) / 12000);
+    for (let i = 0; i < n; i++) {
+      bgStars.push({
+        x: rand(0, W),
+        y: rand(0, H * 0.78),
+        r: rand(.7, 2.4),
+        tw: rand(.0008, .0026),
+        ph: rand(0, Math.PI * 2),
+        gold: Math.random() < .18
+      });
+    }
+  }
+
+  /* ============ 雨 ============ */
+  const rain = [];
+  const sparks = [];
+
+  let t = 0;
+  let dripTimer = 0;
+
+  /* 风：方向由设置栏控制，强弱带一点阵风起伏 */
+  function windAt(now) {
+    const gust = .9 + .22 * Math.sin(now * .00062) + .12 * Math.sin(now * .0019 + 1.7);
+    const rad  = cfg.dir * Math.PI / 180;
+    return {
+      x: Math.cos(rad) * cfg.speed * gust,
+      y: Math.sin(rad) * cfg.speed * gust * .32
+    };
+  }
+
+  function spawnRain() {
+    // 亮度随机：多数偏暗，少数很亮
+    const bright = Math.random();
+    let a, w, big;
+    if (bright > .93) { a = 1; w = rand(1.6, 2.4); big = true; }
+    else if (bright > .62) { a = rand(.55, .85); w = rand(1, 1.6); big = false; }
+    else { a = rand(.12, .42); w = rand(.6, 1.1); big = false; }
+
+    rain.push({
+      x: rand(-W * .3, W * 1.25),
+      y: rand(-H * .35, -8),
+      vx: rand(-40, 60),
+      vy: rand(90, 220) * cfg.fall,
+      a, w, big: big,
+      len: rand(.7, 1.5),
+      star: Math.random() < .12        // 少数是星形雨点
+    });
+  }
+
+  /* ============ 伞面碰撞（椭圆球冠） ============ */
+  function hitUmbrella(p) {
+    const a = umb.a, b = umb.b;
+    if (p.y > umb.cy) return false;                    // 只挡上半面
+    const X = (p.x - umb.cx) / a;
+    const Y = (p.y - umb.cy) / b;
+    const d = Math.hypot(X, Y);
+    if (d > 1.08 || d < 0.2) return false;
+
+    // 椭圆法线
+    let nx = X / a, ny = Y / b;
+    const nl = Math.hypot(nx, ny) || 1;
+    nx /= nl; ny /= nl;
+
+    // 推回伞面外
+    const ux = X / (d || 1), uy = Y / (d || 1);
+    p.x = umb.cx + ux * a + nx * 1.5;
+    p.y = umb.cy + uy * b + ny * 1.5;
+
+    const vn = p.vx * nx + p.vy * ny;
+    if (vn < 0) {
+      // 消掉向内的法向分量 —— 雨就顺着伞面滑下去
+      p.vx -= vn * nx * 1.15;
+      p.vy -= vn * ny * 1.15;
+    }
+    p.vx *= .985;
+    p.vy *= .985;
+
+    // 撞击处溅起星光（沿伞面法线弹开）
+    if (Math.random() < .9) splashStars(p.x, p.y, Math.round(rand(2, 4)), nx, ny);
+    p.attached = true;
+    return true;
+  }
+
+  /* ============ 星光散开 ============ */
+  function splashStars(x, y, n, nx = 0, ny = 0) {
+    for (let i = 0; i < n; i++) {
+      if (sparks.length >= sparkCap()) return;
+      const ang = rand(-Math.PI * 1.18, Math.PI * .18);
+      const sp  = rand(35, 150);
+      const life = rand(.45, 1.0);
+      sparks.push({
+        x, y,
+        // 沿伞面法线弹开，再叠加随机方向
+        vx: Math.cos(ang) * sp + nx * rand(15, 60),
+        vy: Math.sin(ang) * sp + ny * rand(15, 60),
+        age: 0, life,
+        size: rand(2.0, 4.6),
+        rot: rand(0, Math.PI),
+        spin: rand(-7, 7),
+        gold: Math.random() < .6
+      });
+    }
+  }
+
+  /* ============ 主更新 ============ */
+  function update(dt) {
+    t += dt * 1000;
+
+    // 伞随风轻摆
+    umb.cx = umb.baseX + Math.sin(t * .00072) * W * .016;
+
+    // 补充雨
+    const cap = rainCap();
+    if (rain.length < cap) {
+      const need = Math.min(10, Math.ceil((cap - rain.length) / 12) + 1);
+      for (let i = 0; i < need; i++) spawnRain();
+    }
+
+    // 伞沿积水，不断往下滴
+    dripTimer -= dt;
+    if (dripTimer <= 0 && cfg.density > 0) {
+      dripTimer = rand(.18, .5);
+      const side = Math.random() < .5 ? -1 : 1;
+      const dx = umb.cx + side * umb.a * rand(1.06, 1.16);
+      rain.push({
+        x: dx, y: umb.cy + rand(2, 14),
+        vx: rand(-6, 8), vy: rand(30, 70),
+        a: rand(.5, 1), w: rand(.9, 1.5), big: Math.random() < .3,
+        len: rand(.8, 1.3), star: false, attached: false
+      });
+    }
+
+    const wind = windAt(t);
+
+    for (let i = rain.length - 1; i >= 0; i--) {
+      const p = rain[i];
+      p.vy += 300 * cfg.fall * dt;      // 重力
+      // 风：水平速度朝风向收敛，风越大雨丝越斜
+      const tx = wind.x * 1.8;
+      p.vx += (tx - p.vx) * Math.min(1, 2.2 * dt);
+      p.vy += wind.y * .45 * dt;        // 竖直分量，弱一些
+      p.vx = clamp(p.vx, -260, 260);
+
+      // 两个子步，避免高速穿透伞面
+      let hitSomething = false;
+      for (let s = 0; s < 2; s++) {
+        p.x += p.vx * dt * .5;
+        p.y += p.vy * dt * .5;
+
+        if (hitUmbrella(p)) { hitSomething = true; break; }
+
+        // 已经离开伞面的雨滴恢复自由下落
+        if (p.attached) {
+          const ex = (p.x - umb.cx) / umb.a;
+          const ey = (p.y - umb.cy) / umb.b;
+          if (Math.hypot(ex, ey) > 1.12) p.attached = false;
+        }
+
+        // 雨在伞面上滑过时，留下流动的星屑（把雨变成星光的过程）
+        if (p.attached) {
+          p.trail = (p.trail || 0) + Math.hypot(p.vx, p.vy) * dt * .5;
+          if (p.trail > 26 && sparks.length < sparkCap()) {
+            p.trail = 0;
+            sparks.push({
+              x: p.x, y: p.y,
+              vx: p.vx * .25 + rand(-8, 8),
+              vy: p.vy * .25 + rand(-8, 8),
+              age: 0, life: rand(.3, .55),
+              size: rand(1.1, 2.0),
+              rot: rand(0, Math.PI),
+              spin: rand(-3, 3),
+              gold: true
+            });
+          }
+        }
+
+        if (p.y > groundY(p.x)) {
+          splashStars(p.x, groundY(p.x) - 2, 3);   // 落地：碎成小星星
+          hitSomething = true;
+          break;
+        }
+      }
+
+      const out = p.x < -W * .3 || p.x > W * 1.3 || p.y > H + 40;
+      if (hitSomething && p.y > groundY(p.x)) { rain.splice(i, 1); continue; }
+      if (out) rain.splice(i, 1);
+    }
+
+    // 星光
+    for (let i = sparks.length - 1; i >= 0; i--) {
+      const s = sparks[i];
+      s.age += dt;
+      if (s.age >= s.life) { sparks.splice(i, 1); continue; }
+      s.vy += 140 * dt;
+      s.vx *= (1 - 1.6 * dt);
+      s.vy *= (1 - 1.1 * dt);
+      s.vx += wind.x * .3 * dt;
+      s.x += s.vx * dt;
+      s.y += s.vy * dt;
+      s.rot += s.spin * dt;
+    }
+  }
+
+  /* ============ 绘制 ============ */
+  function drawSky() {
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, W, H);
+
+    // 星点
+    for (const s of bgStars) {
+      const a = .25 + .55 * (.5 + .5 * Math.sin(t * s.tw + s.ph));
+      ctx.globalAlpha = a;
+      ctx.fillStyle = s.gold ? '#FFE9A3' : '#FFFFFF';
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    // 地平线
+    const gy0 = groundY(W * .5);
+    const gg = ctx.createLinearGradient(0, gy0, 0, H);
+    gg.addColorStop(0, '#1a3a68');
+    gg.addColorStop(.18, '#122f5a');
+    gg.addColorStop(1, '#061530');
+    ctx.fillStyle = gg;
+    ctx.beginPath();
+    ctx.moveTo(0, H);
+    for (let x = 0; x <= W; x += 12) ctx.lineTo(x, groundY(x));
+    ctx.lineTo(W, H);
+    ctx.closePath();
+    ctx.fill();
+
+    // 银河：一条很淡的斜向光带（边缘全透明，避免硬边）
+    ctx.save();
+    ctx.translate(W * .5, H * .34);
+    ctx.rotate(-.38);
+    const band = ctx.createLinearGradient(0, -H * .17, 0, H * .17);
+    band.addColorStop(0,   'rgba(130,168,240,0)');
+    band.addColorStop(.5,  'rgba(140,178,250,.075)');
+    band.addColorStop(1,   'rgba(130,168,240,0)');
+    ctx.fillStyle = band;
+    ctx.fillRect(-W * .8, -H * .17, W * 1.6, H * .34);
+    ctx.restore();
+
+    // 地平线的一道光
+    ctx.beginPath();
+    for (let x = 0; x <= W; x += 12) {
+      const y = groundY(x);
+      if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.strokeStyle = 'rgba(206,226,255,.42)';
+    ctx.lineWidth = 1.4;
+    ctx.stroke();
+  }
+
+  function drawRain() {
+    for (const p of rain) {
+      const sp = Math.hypot(p.vx, p.vy) || 1;
+      const len = Math.min(sp * .055 * p.len, 44);
+      const nx = p.vx / sp, ny = p.vy / sp;
+
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo(p.x - nx * len, p.y - ny * len);
+      ctx.strokeStyle = p.big
+        ? `rgba(255,240,200,${p.a})`
+        : `rgba(220,235,255,${p.a})`;
+      ctx.lineWidth = p.w;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+
+      if (p.star) {
+        // 个别雨点是星形，落下来像流星屑
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.scale(p.w * 1.6, p.w * 1.6);
+        ctx.globalAlpha = p.a;
+        ctx.fillStyle = '#FFF3C4';
+        ctx.fill(starPath);
+        ctx.restore();
+        ctx.globalAlpha = 1;
+      }
+    }
+  }
+
+  function drawUmbrella() {
+    const { a, b, cx, cy } = umb;
+    const seg = 6;                       // 6 个等分伞面
+
+    ctx.save();
+
+    /* 伞面：上半椭圆弧 + 平直底边，平涂、无渐变 */
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, a, b, 0, Math.PI, Math.PI * 2);
+    ctx.closePath();                     // 闭合即一条笔直的伞沿
+    ctx.fillStyle = 'rgba(9,24,50,.84)';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(216,235,255,.8)';
+    ctx.lineWidth = 1.1;
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+
+    /* 伞骨：顶点到伞沿的直线，等分伞面 */
+    ctx.strokeStyle = 'rgba(190,218,255,.30)';
+    ctx.lineWidth = 1;
+    for (let i = 1; i < seg; i++) {
+      const x = cx - a + (2 * a) * (i / seg);
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - b);
+      ctx.lineTo(x, cy);
+      ctx.stroke();
+    }
+
+    /* 伞尖：一小段竖线 */
+    ctx.strokeStyle = 'rgba(212,234,255,.58)';
+    ctx.lineWidth = 1.2;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - b - 6);
+    ctx.lineTo(cx, cy - b + 1);
+    ctx.stroke();
+
+    /* 伞柄与挂钩 */
+    const handleBottom = cy + H * .105;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx, handleBottom);
+    ctx.strokeStyle = 'rgba(202,226,255,.42)';
+    ctx.lineWidth = 1.3;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(cx - 9, handleBottom, 9, 0, Math.PI);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  /* 贴在伞面上滑落的雨珠：画在伞的前面，能看见它们往下滚 */
+  function drawAttached() {
+    for (const p of rain) {
+      if (!p.attached) continue;
+      const sp = Math.hypot(p.vx, p.vy) || 1;
+      const nx = p.vx / sp, ny = p.vy / sp;
+      const len = Math.min(sp * .05, 22);
+
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo(p.x - nx * len, p.y - ny * len);
+      ctx.strokeStyle = `rgba(255,245,215,${p.a * .9})`;
+      ctx.lineWidth = p.w * .9;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.w * .9, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,250,235,${p.a})`;
+      ctx.fill();
+    }
+  }
+
+  function drawSparks() {
+    for (const s of sparks) {
+      const a = 1 - s.age / s.life;
+      const sp = Math.hypot(s.vx, s.vy) || 1;
+      const tl = Math.min(sp * .09, 34);
+      const nx = s.vx / sp, ny = s.vy / sp;
+
+      ctx.beginPath();
+      ctx.moveTo(s.x, s.y);
+      ctx.lineTo(s.x - nx * tl, s.y - ny * tl);
+      ctx.strokeStyle = `rgba(255,240,200,${a * .35})`;
+      ctx.lineWidth = Math.max(s.size * .22, .5);
+      ctx.lineCap = 'round';
+      ctx.stroke();
+
+      ctx.save();
+      ctx.translate(s.x, s.y);
+      ctx.rotate(s.rot);
+      ctx.scale(s.size, s.size);
+      ctx.globalAlpha = a * .95;
+      ctx.fillStyle = s.gold ? '#FFE9A3' : '#FFFFFF';
+      ctx.fill(starPath);
+      ctx.restore();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  /* ============ 循环 ============ */
+  let last = 0, rafId = null;
+
+  function frame(now) {
+    const dt = Math.min((now - last) / 1000, 1 / 30);
+    last = now;
+
+    update(dt);
+
+    ctx.clearRect(0, 0, W, H);
+    drawSky();
+    drawRain();          // 雨先落
+    drawUmbrella();      // 伞把它挡住
+    drawAttached();      // 顺着伞面滚落的雨珠
+    drawSparks();        // 星光在最前
+
+    rafId = requestAnimationFrame(frame);
+  }
+
+  /* ============ 启动 ============ */
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    cv.width  = Math.round(W * dpr);
+    cv.height = Math.round(H * dpr);
+    cv.style.width  = W + 'px';
+    cv.style.height = H + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    bgGrad = ctx.createLinearGradient(0, 0, 0, H);
+    bgGrad.addColorStop(0, '#040c22');
+    bgGrad.addColorStop(.42, '#0a1b3f');
+    bgGrad.addColorStop(.72, '#0e2751');
+    bgGrad.addColorStop(1, '#081a38');
+
+    layout();
+    buildStars();
+  }
+
+  /* ============ 设置栏交互 ============ */
+  function paintTrack(input) {
+    const min = +input.min, max = +input.max;
+    input.style.setProperty('--fill', ((+input.value - min) / (max - min) * 100) + '%');
+  }
+
+  function readCfg() {
+    cfg.dir     = +uiEl.dir.value;
+    cfg.speed   = +uiEl.speed.value;
+    cfg.density = +uiEl.density.value;
+    cfg.fall    = +uiEl.fall.value;
+  }
+
+  function renderUI() {
+    uiEl.dir.value     = cfg.dir;
+    uiEl.speed.value   = cfg.speed;
+    uiEl.density.value = cfg.density;
+    uiEl.fall.value    = cfg.fall;
+
+    Object.keys(uiEl).forEach(k => paintTrack(uiEl[k]));
+
+    outEl.dir.textContent     = Math.round(cfg.dir) + '°';
+    outEl.speed.textContent   = Math.round(cfg.speed);
+    outEl.density.textContent = Math.round(cfg.density) + '%';
+    outEl.fall.textContent    = '×' + (Math.round(cfg.fall * 100) / 100).toFixed(2).replace(/0$/, '');
+    dirArrow.style.transform  = 'rotate(' + cfg.dir + 'deg)';
+  }
+
+  function saveCfg() {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(cfg)); } catch (e) {}
+  }
+
+  function loadCfg() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
+      if (saved && typeof saved === 'object') {
+        for (const k in DEFAULTS) {
+          if (typeof saved[k] === 'number' && isFinite(saved[k])) cfg[k] = saved[k];
+        }
+      }
+    } catch (e) {}
+  }
+
+  Object.keys(uiEl).forEach(k => {
+    uiEl[k].addEventListener('input', () => { readCfg(); renderUI(); saveCfg(); });
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    Object.assign(cfg, DEFAULTS);
+    renderUI();
+    saveCfg();
+  });
+
+  const panel = document.getElementById('panel');
+  const cfgBtn = document.getElementById('cfgBtn');
+
+  function togglePanel(open) {
+    panel.dataset.open = open ? 'true' : 'false';
+    cfgBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+
+  cfgBtn.addEventListener('click', () => togglePanel(panel.dataset.open !== 'true'));
+  window.addEventListener('keydown', e => {
+    if (e.key && e.key.toLowerCase() === 'h' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+      togglePanel(panel.dataset.open !== 'true');
+    }
+  });
+
+  window.addEventListener('resize', resize);
+  resize();
+
+  loadCfg();
+  renderUI();
+
+  // 预铺一层雨，打开就有密度
+  const seedN = Math.round(rainCap() * .45);
+  for (let i = 0; i < seedN; i++) {
+    spawnRain();
+    const p = rain[rain.length - 1];
+    p.y = rand(-H * .2, H * .75);
+  }
+
+  last = performance.now();
+  rafId = requestAnimationFrame(frame);
+
+  /* 调试：?snap=1 把画面转成图片盖在页面上（无头截图用） */
+  if (location.search.indexOf('snap') > -1) {
+    setTimeout(() => {
+      const img = new Image();
+      img.src = cv.toDataURL();
+      img.style.cssText = 'position:fixed;left:0;top:0;width:100%;height:100%;z-index:99';
+      document.body.appendChild(img);
+    }, 1400);
+  }
+})();
+</script>
+</body>
+</html>
