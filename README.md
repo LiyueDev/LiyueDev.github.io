@@ -14,8 +14,8 @@
 | 文件 | 说明 |
 | --- | --- |
 | `index.html` | 首页：作品 / 关于 / 开源 / 联系 |
-| `star-rain.html` | **把雨接成星光** —— 伞接住的雨变成光，Canvas 粒子，单文件 |
-| `wind-tree.html` | **风过梨花** —— 像素花树，两百多根关节，风从枝头一段段传下去 |
+| `star-rain.html` | **把雨接成星光** —— 伞接住的雨变成光，Canvas 粒子，风向 / 风速 / 雨密度可调，单文件 |
+| `wind-tree.html` | **把风递给花瓣** —— 像素梨花树，海、沙滩、公路、月亮逐帧在动，风从枝头一段段传下去 |
 | `showpages/liyue-pixel-plants/` | 像素植物引擎 `pixel-flora.js`（梨 / 桃 / 樱 / 银杏 / 灌木 / 松）、全屏轮播页 `demo.html`、单株页 `pine.html` |
 
 `assets/` 是签名与图标，`preview.png` 用于社交分享卡片。
@@ -41,7 +41,7 @@ cd LiyueDev.github.io
 start index.html
 ```
 
-`wind-tree.html` 支持 `?embed=1` 参数，去掉页面外壳，只留画布 —— 首页作品卡里的实时预览就是这么嵌的。
+`wind-tree.html` 和 `star-rain.html` 都支持 `?embed=1` 参数，去掉页面外壳，只留画布 —— 首页作品卡里的实时预览就是这么嵌的。
 
 ## 部署
 
@@ -56,4 +56,9 @@ git push
 
 ---
 
-MIT · 黎月（LiyueDev）
+## 版权
+
+本仓库的 HTML / CSS / JS 代码结构仅供学习参考（欢迎借鉴我的极简排版）。
+但页面内的个人介绍、设计作品图片、UI 设计规范，版权归黎月（LiyueDev）所有，未经授权请勿直接复制用于商业用途。
+
+© 2026 黎月 · LiyueDev
