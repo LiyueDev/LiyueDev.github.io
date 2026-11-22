@@ -278,7 +278,7 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#F5F5FF}
 
   <header class="pp-top">
     <div class="pp-top-start">
-      <a class="pp-icon" href="index.html" aria-label="回到 liyue 的主页" title="回到主页">
+      <a class="pp-icon" href="../index.html" aria-label="回到 liyue 的主页" title="回到主页">
         <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M14.8 4.6 7.4 12l7.4 7.4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </a>
       <button class="pp-icon" id="themeTop" type="button" aria-label="切换深色模式"></button>
@@ -319,8 +319,8 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#F5F5FF}
     </div>
 
     <div class="pp-top-end">
-      <a class="wt-sign" href="index.html" aria-label="liyue 的作品集" title="liyue">
-        <img src="assets/avatar.png" alt="liyue 的签名" />
+      <a class="wt-sign" href="../index.html" aria-label="liyue 的作品集" title="liyue">
+        <img src="../assets/img/avatar.png" alt="liyue 的签名" />
       </a>
     </div>
   </header>
@@ -2255,7 +2255,7 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#F5F5FF}
     var dark = state.theme === "dark";
     themeTop.innerHTML = dark ? SUN : MOON;
     themeTop.setAttribute("aria-label", dark ? "切换到浅色" : "切换到深色");
-    if (signImg) signImg.src = dark ? "assets/sign-white.png" : "assets/avatar.png";
+    if (signImg) signImg.src = dark ? "../assets/img/sign-white.png" : "../assets/img/avatar.png";
   }
   function toggleTheme() {
     state.theme = state.theme === "dark" ? "light" : "dark";
