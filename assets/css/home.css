@@ -426,6 +426,9 @@ h3{font-size:1.62rem;line-height:1.25;font-weight:700;letter-spacing:-.032em}
 .ly-name .ly-en{font-size:clamp(1.85rem,3.1vw,2.55rem);font-weight:700;letter-spacing:-.035em;color:var(--ink);line-height:1}
 
 .ly-tag{margin-top:18px;font-size:clamp(.95rem,1.3vw,1.06rem);letter-spacing:-.012em;color:var(--ink)}
+.ly-slogan{margin-top:14px;display:flex;flex-direction:column;align-items:flex-start;gap:2px}
+.ly-slogan-cn{font-size:1.16rem;font-weight:600;letter-spacing:.01em;color:var(--blue)}
+.ly-slogan-en{font-size:.7rem;font-weight:600;letter-spacing:.2em;color:var(--ink-3);text-transform:uppercase}
 .ly-desc{margin-top:12px;max-width:46ch;font-size:.84rem;line-height:1.95;color:var(--ink-2)}
 
 .ly-figs{display:flex;flex-wrap:wrap;list-style:none;margin-top:26px;padding-top:15px;border-top:1px solid var(--line)}
@@ -706,6 +709,8 @@ footer .fright a:hover{color:var(--blue-deep)}
   .ly-name .ly-mark{width:26px;height:40px}
   .ly-name .ly-en{font-size:1.6rem;letter-spacing:-.03em}
   .ly-name .ly-cn{font-size:1.06rem}
+  .ly-slogan-cn{font-size:1.03rem}
+  .ly-slogan-en{font-size:.64rem;letter-spacing:.16em}
   .ly-figs{display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:22px;padding-top:13px}
   .ly-figs li{border-right:0;padding-right:0;margin-right:0}
   .ly-act{gap:14px 18px;margin-top:22px}
