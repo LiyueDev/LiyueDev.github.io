@@ -1,5 +1,5 @@
-/* LyLaunch 项目页脚本：reveal 淡入 / 首屏光晕跟随指针 / 导航收窄 / 界面轮播 / 滚轮整页翻页
-   拆自原 lylaunch-web/index.html 的内联脚本，逻辑与顺序未改动。
+/* LyLaunch 项目页脚本：reveal 淡入 / 首屏光晕跟随指针 / 导航收窄 / 侧边目录高亮 / 界面轮播
+   滚轮只在首屏拦截一次：下滑直达第二屏；进入第二屏后一律原生滚动，不逐屏翻页。
    注意：documentElement.classList.add('js') 那一段仍留在页面内联（要在首帧前生效，防闪烁）。 */
 
 /* 进入视口淡入：只做一次，尊重 prefers-reduced-motion */
@@ -57,6 +57,69 @@
   onScroll();
   window.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('resize', onScroll);
+})();
+
+/* 侧边目录：首屏隐藏，滚到哪一屏就点亮哪一项 */
+(function () {
+  var toc = document.getElementById('toc');
+  if (!toc) return;
+  var links = Array.prototype.slice.call(toc.querySelectorAll('a'));
+  var secs = links.map(function (a) { return document.getElementById(a.getAttribute('href').slice(1)); });
+  if (!secs.length || secs.some(function (s) { return !s; })) return;
+
+  var hero = document.querySelector('.hero');
+  var active = -1;
+  function update() {
+    var sy = window.scrollY || window.pageYOffset || 0;
+    var heroH = hero ? hero.getBoundingClientRect().height : window.innerHeight;
+    toc.classList.toggle('on', sy > heroH * 0.45);
+
+    var y = sy + window.innerHeight * 0.34;
+    var found = 0;
+    for (var i = 0; i < secs.length; i++) {
+      var m = parseFloat(getComputedStyle(secs[i]).scrollMarginTop) || 0;
+      var top = secs[i].getBoundingClientRect().top + sy - m;
+      if (top <= y) found = i;
+    }
+    if (found === active) return;
+    active = found;
+    links.forEach(function (a, i) {
+      if (i === active) a.setAttribute('aria-current', 'true');
+      else a.removeAttribute('aria-current');
+    });
+  }
+  window.addEventListener('scroll', update, { passive: true });
+  window.addEventListener('resize', update);
+  update();
+})();
+
+/* 首屏滚轮：下滑一次直达第二屏，之后全部交回原生滚动 */
+(function () {
+  var hero = document.querySelector('.hero');
+  var shots = document.getElementById('features');
+  if (!hero || !shots) return;
+  if (!window.matchMedia) return;
+  if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var locked = false;
+
+  window.addEventListener('wheel', function (e) {
+    if (e.ctrlKey || e.metaKey || e.shiftKey) return;
+    var sy = window.scrollY || window.pageYOffset || 0;
+    if (sy > 4) return;                       /* 只在首屏顶部拦截 */
+    var dy = e.deltaY;
+    if (e.deltaMode === 1) dy *= 16;
+    else if (e.deltaMode === 2) dy *= window.innerHeight;
+    if (dy <= 0) return;                      /* 上滚不拦 */
+    if (Math.abs(dy) < 6) return;
+    e.preventDefault();
+    if (locked) return;
+    locked = true;
+    var m = parseFloat(getComputedStyle(shots).scrollMarginTop) || 0;
+    var target = Math.max(0, Math.round(shots.getBoundingClientRect().top + sy - m));
+    window.scrollTo({ top: target, behavior: reduce ? 'auto' : 'smooth' });
+    window.setTimeout(function () { locked = false; }, reduce ? 0 : 900);
+  }, { passive: false });
 })();
 
 /* 界面轮播：自动播放 + 箭头 / 圆点 / 滑动切换 */
@@ -188,83 +251,4 @@
   }
 
   show(0);
-})();
-
-/* 滚轮翻页：一屏一屏翻；下一板块若在当前屏内则对齐到板块顶部 */
-(function () {
-  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var locked = false, acc = 0, lastT = 0;
-  var pages = Array.prototype.slice.call(document.querySelectorAll('section'));
-
-  function maxY() {
-    return Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
-  }
-
-  function tops() {
-    return pages.map(function (p) {
-      var m = parseFloat(getComputedStyle(p).scrollMarginTop) || 0;
-      return Math.round(p.getBoundingClientRect().top + (window.scrollY || window.pageYOffset) - m);
-    });
-  }
-
-  function revealViewport() {
-    var h = window.innerHeight;
-    var els = document.querySelectorAll('.reveal:not(.in)');
-    var i, r;
-    for (i = 0; i < els.length; i++) {
-      r = els[i].getBoundingClientRect();
-      if (r.top < h && r.bottom > 0) els[i].classList.add('in');
-    }
-  }
-
-  function flip(dir) {
-    var y = window.scrollY || window.pageYOffset || 0;
-    var h = window.innerHeight;
-    if (!h) return;
-    var list = tops();
-    var page = y + dir * h;
-    var target = page;
-    var i, t, prev = null;
-    if (dir > 0) {
-      for (i = 0; i < list.length; i++) {
-        t = list[i];
-        if (t > y + 4) {
-          if (t <= page + 2) target = t;
-          break;
-        }
-      }
-    } else {
-      for (i = 0; i < list.length; i++) {
-        t = list[i];
-        if (t < y - 4) prev = t;
-      }
-      if (prev !== null && prev >= page - 2) target = prev;
-    }
-    target = Math.max(0, Math.min(maxY(), target));
-    if (Math.abs(target - y) < 2) return;
-    locked = true;
-    window.scrollTo({ top: target, behavior: reduce ? 'auto' : 'smooth' });
-    window.setTimeout(function () {
-      locked = false;
-      revealViewport();
-    }, reduce ? 0 : 850);
-  }
-
-  window.addEventListener('wheel', function (e) {
-    if (e.ctrlKey || e.metaKey) return;
-    var dy = e.deltaY;
-    if (e.deltaMode === 1) dy *= 16;
-    else if (e.deltaMode === 2) dy *= window.innerHeight;
-    if (Math.abs(dy) <= Math.abs(e.deltaX)) return;
-    e.preventDefault();
-    if (locked) return;
-    var now = Date.now();
-    if (now - lastT > 260) acc = 0;
-    lastT = now;
-    acc += dy;
-    if (Math.abs(acc) < 26) return;
-    var dir = acc > 0 ? 1 : -1;
-    acc = 0;
-    flip(dir);
-  }, { passive: false });
 })();

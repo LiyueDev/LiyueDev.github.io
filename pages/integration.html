@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>接入 DeepSeek Harness · 轻启 LyLaunch</title>
+<meta name="description" content="把 LyLaunch 的本地模型接进 DeepSeek Harness：设置里点一下接入，dsh 模型选择器就多出一组本地模型，独立端口 18091，附运行监控。">
+<meta name="theme-color" content="#F8FAFE">
+<link rel="icon" href="../assets/img/lylaunch/favicon.ico">
+<link rel="stylesheet" href="../assets/css/lylaunch.css">
+<style>
+/* 接入二级页：复用 lylaunch.css 的 .dsh-* / 导航 / 页脚，这里只补页面骨架 */
+.pl-main{padding-top:78px}
+.pl-hero{padding:64px 0 72px}
+.pl-hero .h1{
+  margin:14px 0 0;font-size:clamp(1.9rem,3.6vw,2.8rem);line-height:1.16;
+  font-weight:800;letter-spacing:-.03em;
+}
+.pl-hero .h1 .sup-group{display:inline-flex;align-items:center;gap:7px;margin-left:10px;vertical-align:middle;transform:translateY(-3px)}
+.pl-sup{
+  display:inline-flex;align-items:center;height:24px;padding:0 11px;border-radius:999px;
+  font-size:.68rem;font-weight:700;letter-spacing:.02em;
+  background:var(--blue-soft);color:var(--blue-deep);border:1px solid #DCE6FB;
+}
+.pl-sup.free{background:#EFFAF3;color:#0E9F6E;border-color:#D6F1E1}
+.pl-hero .lede{margin:14px 0 0;max-width:66ch;font-size:.9rem;line-height:1.85;color:var(--ink-2)}
+.pl-hero .ac-stats{margin-top:20px}
+.pl-hero .dsh-split{margin-top:34px}
+.pl-back{display:inline-flex;align-items:center;gap:8px;margin-top:28px;font-size:.78rem;font-weight:600;color:var(--blue-deep)}
+.pl-back svg{width:14px;height:14px;transition:transform .3s var(--ease)}
+.pl-back:hover svg{transform:translateX(-3px)}
+@media (max-width:720px){
+  .pl-main{padding-top:60px}
+  .pl-hero{padding:44px 0 52px}
+  .pl-hero .h1 .sup-group{display:flex;margin:9px 0 0;transform:none}
+}
+</style>
+</head>
+<body>
+<script>document.documentElement.classList.add('js');</script>
+
+<header class="nav" id="nav">
+  <div class="wrap nav-in">
+    <a class="brand" href="lylaunch.html" aria-label="返回轻启 LyLaunch 产品页" title="轻启 LyLaunch 产品页">
+      <img class="ava" src="../assets/img/avatar.png" alt="黎月的手写签名">
+      <span class="who"><b>轻启 LyLaunch</b><i>DeepSeek Harness</i></span>
+    </a>
+    <nav class="links">
+      <a href="#overview"><b>总览</b><i>Overview</i></a>
+      <a href="#monitor"><b>监控</b><i>Monitor</i></a>
+      <a href="#steps"><b>步骤</b><i>Steps</i></a>
+    </nav>
+    <div class="status">
+      <a class="gh" href="https://github.com/LiyueDev/LyLaunch" target="_blank" rel="noopener" aria-label="GitHub 仓库" title="github.com/LiyueDev/LyLaunch">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+      </a>
+      <a class="pill" href="lylaunch.html">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        返回产品页
+      </a>
+    </div>
+  </div>
+</header>
+
+<main class="pl-main">
+  <section class="sec pl-hero" id="overview">
+    <div class="wrap">
+      <div class="sec-brand reveal">
+        <div class="sec-brand-l">
+          <svg class="sec-brand-mark" viewBox="60 26 136 204" aria-hidden="true" focusable="false">
+            <path d="M70 54 Q80 36 92 46 Q102 56 94 90 Q84 132 82 160 Q80 182 96 182 Q114 182 124 160 Q134 138 136 114 Q142 144 154 166 Q164 180 176 162 Q184 148 184 134 Q186 170 174 200 Q164 220 138 212"
+                  fill="none" stroke="#2F6BEE" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="sec-brand-cn">轻启</span>
+          <span class="sec-brand-en">LyLaunch</span>
+        </div>
+        <span class="sec-brand-pill"><i></i>Windows 10 / 11 · 免费开源</span>
+      </div>
+
+      <p class="eyebrow"><em>01</em>Integration · 接入</p>
+      <h1 class="h1">本地模型，接进 DeepSeek Harness<span class="sup-group"><span class="pl-sup">一键接入</span><span class="pl-sup free">独立端口</span></span></h1>
+      <p class="lede">装好的模型，在设置里点一下「接入」，dsh 的模型选择器里就多出一组「LyLaunch 本地模型」。接进去的两个都带视觉，能读图也能聊天；它到底在跑什么、吃多少显存，同一页的监控面板都写着。</p>
+
+      <div class="ac-stats reveal">
+        <span class="ac-stat"><b>2</b> 个模型已接入</span>
+        <span class="ac-stat"><b>18091</b> 独立端口</span>
+        <span class="ac-stat"><b>77.5</b> t/s 实测输出</span>
+        <span class="ac-stat"><b>112K</b> 上下文窗口</span>
+      </div>
+
+      <div class="dsh-split reveal" id="monitor">
+        <figure class="dsh-panel">
+          <img src="../assets/img/lylaunch/dsh/panel.png" width="786" height="434" loading="eager" decoding="async" alt="运行监控面板：输出速度 77.5 t/s、上下文占用 0.4%（408 / 114,688 tok）、缓存命中 36%、显存 11,480 / 12,227 MB、GPU 82% · 52°C，下方是最近两分钟的输出速度与显存占用曲线">
+          <figcaption>设置 · 外部集成 · 运行监控</figcaption>
+        </figure>
+        <div class="dsh-read">
+          <h3>接上之后，不用猜它在干嘛</h3>
+          <dl>
+            <dt>输出速度</dt>
+            <dd>每 2 秒的差分，不是平均值；<b>掉速会立刻显出来</b>，不用等到回复变慢才怀疑。</dd>
+            <dt>上下文占用</dt>
+            <dd>窗口开到 112K，这一轮其实只吃了 408 token（0.4%）——<b>先给够，用多少算多少</b>。</dd>
+            <dt>显存与温度</dt>
+            <dd>整卡 11,480 / 12,227 MB、GPU 82% · 52°C。口径是<b>整卡</b>，含其他程序，不只是模型自己。</dd>
+          </dl>
+        </div>
+      </div>
+
+      <div class="dsh-steps" id="steps">
+        <article class="dsh-step reveal">
+          <img src="../assets/img/lylaunch/dsh/step1.png" width="636" height="320" style="object-position:left center" loading="lazy" decoding="async" alt="本地模型页：Qwen3-VL-8B 与 Qwen3.5-9B-DeepSeek-V4-Flash 显示已安装">
+          <h3><span class="dsh-step-no">1</span>先把模型装好</h3>
+          <p>要接的是「视觉 · 对话」这两个，装完直接显示 <b>已安装 · 可直接使用</b>。没装的模型不会出现在接入列表里。</p>
+        </article>
+        <article class="dsh-step reveal">
+          <img src="../assets/img/lylaunch/dsh/step2.png" width="676" height="340" style="object-position:left center" loading="lazy" decoding="async" alt="外部集成页配置分栏：已接入 qwen3-vl-8b 与 qwen35-9b-v4-distill，外部引擎运行中">
+          <h3><span class="dsh-step-no">2</span>点「接入」</h3>
+          <p>同一页能看到接入了哪几个、引擎在不在跑、上下文给了多大。改完上下文要按<b>重启</b>才生效。</p>
+        </article>
+        <article class="dsh-step reveal">
+          <img src="../assets/img/lylaunch/dsh/step3.png" width="563" height="283" style="object-position:left center" loading="lazy" decoding="async" alt="DeepSeek Harness 的模型选择器：LyLaunch 本地模型分组下是 Qwen3-VL-8B 与 Qwen3.5-9B-DeepSeek-V4-Flash">
+          <h3><span class="dsh-step-no">3</span>回 dsh 里选它</h3>
+          <p>选择器里会多出一组「LyLaunch 本地模型」，和云端账号并列。选中之后所有请求都走本机。</p>
+        </article>
+      </div>
+
+      <div class="dsh-banner reveal">
+        <i class="dsh-banner-ic">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>
+        </i>
+        <div>
+          <h4>只往自己那一段里写，不动你原来的配置</h4>
+          <p>写入前先留一份备份，写完做一次格式校验，不通过就原样退回；不用了点「撤销」，连占位密钥一起收走。外部引擎单开在 18091，和插件的 18090 互不打扰——<b>改外部集成的上下文，不会打断正在跑的翻译和识别</b>。</p>
+        </div>
+      </div>
+      <p class="dsh-note reveal">速度、显存与缓存命中均为实机读数，会随模型大小和显卡不同。</p>
+
+      <a class="pl-back" href="lylaunch.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+        返回轻启 LyLaunch 产品页
+      </a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot-in">
+    <p>© 2026 黎月 · LiyueDev　接入与监控截图均为实机；速度随模型大小和显卡不同。</p>
+    <div class="foot-r">
+      <a href="lylaunch.html">← 产品页</a>
+      <span>v1.2.3</span>
+      <span>No build step</span>
+      <a href="https://github.com/LiyueDev/LyLaunch" target="_blank" rel="noopener">GitHub ↗</a>
+    </div>
+  </div>
+</footer>
+
+<script src="../assets/js/lylaunch.js" defer></script>
+</body>
+</html>

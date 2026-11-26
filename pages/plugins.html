@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>本地模型插件 · 轻启 LyLaunch</title>
+<meta name="description" content="轻启 LyLaunch 的四个本地模型插件：文本翻译、图片转文字、文档识别、本地 AI。共用一套推理引擎与一份模型注册表，装一次全程离线。">
+<meta name="theme-color" content="#F8FAFE">
+<link rel="icon" href="../assets/img/lylaunch/favicon.ico">
+<link rel="stylesheet" href="../assets/css/lylaunch.css">
+<style>
+/* 插件二级页专属样式：复用 lylaunch.css 的令牌 / 导航 / 页脚 / 按钮，这里只加本页内容 */
+.pl-main{padding-top:78px}
+.pl-hero{padding:64px 0 72px}
+.pl-hero .h1{
+  margin:14px 0 0;font-size:clamp(1.9rem,3.6vw,2.8rem);line-height:1.16;
+  font-weight:800;letter-spacing:-.03em;
+}
+.pl-hero .h1 .sup-group{display:inline-flex;align-items:center;gap:7px;margin-left:10px;vertical-align:middle;transform:translateY(-3px)}
+.pl-sup{
+  display:inline-flex;align-items:center;height:24px;padding:0 11px;border-radius:999px;
+  font-size:.68rem;font-weight:700;letter-spacing:.02em;
+  background:var(--blue-soft);color:var(--blue-deep);border:1px solid #DCE6FB;
+}
+.pl-sup.free{background:#EFFAF3;color:#0E9F6E;border-color:#D6F1E1}
+.pl-hero .lede{margin:14px 0 0;max-width:64ch;font-size:.9rem;line-height:1.85;color:var(--ink-2)}
+.pl-hero .ac-stats{margin-top:20px}
+
+/* 四个插件概览 */
+.ov-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:30px}
+.ov-card{
+  display:flex;gap:13px;align-items:flex-start;
+  background:#FAFBFD;border:1px solid #EDF0F5;border-radius:15px;padding:16px 17px;
+}
+.ov-ic{
+  width:34px;height:34px;flex:none;border-radius:10px;background:var(--blue-soft);
+  display:grid;place-items:center;
+}
+.ov-ic svg{width:18px;height:18px;stroke:var(--blue);stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.ov-card h3{font-size:.86rem;font-weight:700;letter-spacing:-.005em;color:var(--ink)}
+.ov-card p{margin-top:5px;font-size:.74rem;line-height:1.7;color:var(--ink-3)}
+.ov-card p b{color:#4A5260;font-weight:600}
+
+/* 模型清单表 */
+.pl-table{width:100%;margin-top:16px;border-collapse:collapse;font-size:.78rem}
+.pl-table th{
+  text-align:left;padding:0 12px 9px 0;font-size:.62rem;font-weight:600;letter-spacing:.1em;
+  color:var(--ink-4);border-bottom:1px solid var(--line);
+}
+.pl-table td{padding:12px 12px 12px 0;border-bottom:1px solid var(--surface-2);color:var(--ink-2);vertical-align:middle;line-height:1.6}
+.pl-table tr:last-child td{border-bottom:0}
+.pl-table td:first-child{font-weight:700;color:var(--ink);width:110px}
+.pl-table .def{color:var(--blue-deep);font-weight:600}
+.pl-table .opt{color:var(--ink-3)}
+
+/* 详情区块 */
+.pl-detail{padding:64px 0}
+.pl-detail .detail-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.pl-detail .detail-head h2{font-size:clamp(1.4rem,2.4vw,1.8rem);letter-spacing:-.03em}
+.pl-detail .detail-head .tag{
+  font-family:var(--font-mono);font-size:.66rem;font-weight:700;letter-spacing:.06em;
+  color:var(--blue);background:var(--blue-soft);border-radius:6px;padding:3px 8px;
+}
+.pl-detail .detail-lead{margin-top:12px;max-width:62ch;font-size:.84rem;line-height:1.85;color:var(--ink-2)}
+.pl-models{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}
+.pl-models span{
+  display:inline-flex;align-items:center;height:25px;padding:0 10px;border-radius:7px;
+  background:var(--surface-2);border:1px solid var(--line);
+  font-size:.68rem;font-weight:600;color:#4A5260;
+}
+.pl-models span.on{background:#EFFAF3;border-color:#D6F1E1;color:#0E9F6E}
+.pl-shot{
+  display:block;width:100%;height:auto;margin-top:24px;
+  border:1px solid var(--line);border-radius:14px;background:#fff;
+  box-shadow:0 1px 2px rgba(16,24,40,.04),0 16px 34px -18px rgba(16,24,40,.22),0 40px 70px -46px rgba(16,24,40,.36);
+}
+.pl-shot-cap{margin-top:10px;font-family:var(--font-mono);font-size:.62rem;letter-spacing:.08em;color:var(--ink-4)}
+
+.pl-back{display:inline-flex;align-items:center;gap:8px;margin-top:26px;font-size:.78rem;font-weight:600;color:var(--blue-deep)}
+.pl-back svg{width:14px;height:14px;transition:transform .3s var(--ease)}
+.pl-back:hover svg{transform:translateX(-3px)}
+
+@media (max-width:900px){
+  .ov-grid{grid-template-columns:1fr}
+}
+@media (max-width:720px){
+  .pl-main{padding-top:60px}
+  .pl-hero{padding:44px 0 52px}
+  .pl-detail{padding:48px 0}
+  .pl-hero .h1 .sup-group{display:flex;margin:9px 0 0;transform:none}
+  .pl-table{font-size:.72rem}
+  .pl-table th:nth-child(2),.pl-table td:nth-child(2){display:none}
+  .pl-shot{border-radius:10px}
+}
+</style>
+</head>
+<body>
+<script>document.documentElement.classList.add('js');</script>
+
+<svg class="ml-sprite" aria-hidden="true" focusable="false">
+  <symbol id="lg-baidu" viewBox="0 0 24 24"><path fill="currentColor" d="M9.154 0C7.71 0 6.54 1.658 6.54 3.707c0 2.051 1.171 3.71 2.615 3.71 1.446 0 2.614-1.659 2.614-3.71C11.768 1.658 10.6 0 9.154 0zm7.025.594C14.86.58 13.347 2.589 13.2 3.927c-.187 1.745.25 3.487 2.179 3.735 1.933.25 3.175-1.806 3.422-3.364.252-1.555-.995-3.364-2.362-3.674a1.218 1.218 0 0 0-.261-.03zM3.582 5.535a2.811 2.811 0 0 0-.156.008c-2.118.19-2.428 3.24-2.428 3.24-.287 1.41.686 4.425 3.297 3.864 2.617-.561 2.262-3.68 2.183-4.362-.125-1.018-1.292-2.773-2.896-2.75zm16.534 1.753c-2.308 0-2.617 2.119-2.617 3.616 0 1.43.121 3.425 2.988 3.362 2.867-.063 2.553-3.238 2.553-3.988 0-.745-.62-2.99-2.924-2.99zm-8.264 2.478c-1.424.014-2.708.925-3.323 1.947-1.118 1.868-2.863 3.05-3.112 3.363-.25.309-3.61 2.116-2.864 5.42.746 3.301 3.365 3.237 3.365 3.237s1.93.19 4.171-.31c2.24-.495 4.17.123 4.17.123s5.233 1.748 6.665-1.616c1.43-3.364-.808-5.109-.808-5.109s-2.99-2.306-4.736-4.798c-1.072-1.665-2.348-2.268-3.528-2.257zm-2.234 3.84l1.542.024v8.197H7.758c-1.47-.291-2.055-1.292-2.13-1.462-.072-.173-.488-.976-.268-2.343.635-2.049 2.447-2.196 2.447-2.196h1.81zm3.964 2.39v3.881c.096.413.612.488.612.488h1.614v-4.343h1.689v5.782h-3.915c-1.517-.39-1.59-1.465-1.59-1.465v-4.317zm-5.458 1.147c-.66.197-.978.708-1.05.928-.076.22-.247.78-.1 1.269.294 1.095 1.248 1.144 1.248 1.144h1.37v-3.34z"/></symbol>
+  <symbol id="lg-xiaomi" viewBox="0 0 24 24"><path fill="currentColor" d="M12 0C8.016 0 4.756.255 2.493 2.516.23 4.776 0 8.033 0 12.012c0 3.98.23 7.235 2.494 9.497C4.757 23.77 8.017 24 12 24c3.983 0 7.243-.23 9.506-2.491C23.77 19.247 24 15.99 24 12.012c0-3.984-.233-7.243-2.502-9.504C19.234.252 15.978 0 12 0zM4.906 7.405h5.624c1.47 0 3.007.068 3.764.827.746.746.827 2.233.83 3.676v4.54a.15.15 0 0 1-.152.147h-1.947a.15.15 0 0 1-.152-.148V11.83c-.002-.806-.048-1.634-.464-2.051-.358-.36-1.026-.441-1.72-.458H7.158a.15.15 0 0 0-.151.147v6.98a.15.15 0 0 1-.152.148H4.906a.15.15 0 0 1-.15-.148V7.554a.15.15 0 0 1 .15-.149zm12.131 0h1.949a.15.15 0 0 1 .15.15v8.892a.15.15 0 0 1-.15.148h-1.949a.15.15 0 0 1-.151-.148V7.554a.15.15 0 0 1 .151-.149zM8.92 10.948h2.046c.083 0 .15.066.15.147v5.352a.15.15 0 0 1-.15.148H8.92a.15.15 0 0 1-.152-.148v-5.352a.15.15 0 0 1 .152-.147Z"/></symbol>
+  <symbol id="lg-alibaba" viewBox="0 0 24 24"><path fill="currentColor" d="M14.391 16.22c-.963.044-.865-.459-.302-1.234 1.32-1.768 3.82-4.236 3.906-5.982.151-2.283-2.143-3.026-4.501-3.004-1.645.022-3.344.492-4.501.906C5 8.315 2.489 10.576.909 13.076-.768 15.554-.216 17.923 3.322 18c2.716-.109 4.48-.862 6.32-1.802.01 0-5.086 1.453-6.958.383l-.008-.002c-.193-.11-.404-.264-.457-.683-.012-.885 1.46-1.802 2.283-2.097v-1.533a5.374 5.374 0 0 0 1.955.366 5.378 5.378 0 0 0 3.472-1.265c.037.13.056.278.044.447h.371c.048-.394-.172-.706-.172-.706-.333-.529-.915-.52-.915-.52s.315.137.529.466a4.953 4.953 0 0 1-4.665.932l1.21-1.2-.336-.874c2.435-.852 4.48-1.507 7.812-2.085l-.746-.624.389-.24c2.01.568 3.325.985 3.253 2.051a2.672 2.672 0 0 1-.202.611c-.584 1.158-2.326 3.09-3.029 3.898-.465.535-.92 1.06-1.245 1.562-.335.503-.54.971-.551 1.42.043 3.504 10.334-1.64 12.324-3.003-2.943 1.266-6.113 2.489-9.609 2.718Z"/></symbol>
+  <symbol id="lg-qwen" viewBox="0 0 24 24"><path fill="currentColor" d="M23.919 14.545 20.817 9.17l1.47-2.544a.56.56 0 0 0 0-.566l-1.633-2.83a.57.57 0 0 0-.49-.283h-6.207L12.487.402a.57.57 0 0 0-.49-.284H8.732a.56.56 0 0 0-.49.284L5.139 5.775h-2.94a.56.56 0 0 0-.49.284L.077 8.887a.56.56 0 0 0 0 .567L3.18 14.83l-1.47 2.545a.56.56 0 0 0 0 .566l1.634 2.83a.57.57 0 0 0 .49.283h6.205l1.47 2.545a.57.57 0 0 0 .49.284h3.266a.57.57 0 0 0 .49-.284l3.104-5.375h2.94a.57.57 0 0 0 .49-.283l1.634-2.828a.55.55 0 0 0-.004-.568M8.733.686l1.634 2.828-1.634 2.828H21.8L20.164 9.17H7.425L5.63 6.06Zm1.306 19.801-6.205-.002 1.634-2.83h3.265L2.201 6.344h3.267q3.182 5.517 6.367 11.032zm10.124-5.66L18.53 12l-6.532 11.315-1.634-2.83c2.129-3.673 4.25-7.351 6.373-11.028h3.592l3.102 5.374z"/></symbol>
+  <symbol id="lg-deepseek" viewBox="0 0 24 24"><path fill="currentColor" d="M23.748 4.651c-.254-.124-.364.113-.512.233-.051.04-.094.09-.137.137-.372.397-.806.657-1.373.626-.829-.046-1.537.214-2.163.848-.133-.782-.575-1.248-1.247-1.548-.352-.155-.708-.311-.955-.65-.172-.24-.219-.509-.305-.774-.055-.16-.11-.323-.293-.35-.2-.031-.278.136-.356.276-.313.572-.434 1.202-.422 1.84.027 1.436.633 2.58 1.838 3.393.137.094.172.187.129.323-.082.28-.18.553-.266.833-.055.179-.137.218-.328.14a5.5 5.5 0 0 1-1.737-1.179c-.857-.828-1.631-1.743-2.597-2.46a12 12 0 0 0-.689-.47c-.985-.957.13-1.743.387-1.836.27-.098.094-.433-.778-.428-.872.003-1.67.295-2.687.685a3 3 0 0 1-.465.136 9.6 9.6 0 0 0-2.883-.101c-1.885.21-3.39 1.1-4.497 2.622C.082 8.776-.231 10.854.152 13.02c.403 2.284 1.568 4.175 3.36 5.653 1.857 1.533 3.997 2.284 6.438 2.14 1.482-.085 3.132-.284 4.994-1.86.47.234.962.328 1.78.398.629.058 1.235-.031 1.705-.129.735-.155.684-.836.418-.961-2.155-1.004-1.682-.595-2.112-.926 1.095-1.295 2.768-3.598 3.284-6.733.05-.346.115-.834.108-1.114-.004-.171.035-.238.23-.257a4.2 4.2 0 0 0 1.545-.475c1.397-.763 1.96-2.016 2.093-3.517.02-.23-.004-.467-.247-.588M11.58 18.168c-2.088-1.642-3.101-2.183-3.52-2.16-.39.024-.32.472-.234.763.09.288.207.487.371.74.114.167.192.416-.113.603-.673.416-1.842-.14-1.897-.168-1.361-.801-2.5-1.86-3.301-3.306-.775-1.393-1.225-2.888-1.299-4.482-.02-.385.094-.522.477-.592a4.7 4.7 0 0 1 1.53-.038c2.131.311 3.946 1.264 5.467 2.774.868.86 1.525 1.887 2.202 2.89.72 1.066 1.494 2.082 2.48 2.915.348.291.626.513.892.677-.802.09-2.14.109-3.055-.615zm1.001-6.44a.306.306 0 0 1 .415-.287.3.3 0 0 1 .113.074.3.3 0 0 1 .086.214c0 .17-.136.307-.308.307a.303.303 0 0 1-.306-.307m3.11 1.596c-.2.081-.4.151-.591.16a1.25 1.25 0 0 1-.798-.254c-.274-.23-.47-.358-.551-.758a1.7 1.7 0 0 1 .015-.588c.07-.327-.007-.537-.238-.727-.188-.156-.426-.199-.689-.199a.6.6 0 0 1-.254-.078.253.253 0 0 1-.114-.358 1 1 0 0 1 .192-.21c.356-.202.767-.136 1.146.016.352.144.618.408 1.001.782.392.451.462.576.685.915.176.264.336.536.446.848.066.194-.02.353-.25.45"/></symbol>
+  <symbol id="lg-hunyuan" viewBox="0 0 31 30">
+<path d="M15.2287 30C23.4603 30 30.1333 23.2843 30.1333 15C30.1333 6.71573 23.4603 0 15.2287 0C6.9972 0 0.324219 6.71573 0.324219 15C0.324219 23.2843 6.9972 30 15.2287 30Z" fill="#B3DDF2"/>
+  <path d="M15.2318 29.9966C19.3467 29.9966 22.6824 26.6395 22.6824 22.4983C22.6824 18.3571 19.3467 15 15.2318 15C11.117 15 7.78125 18.3571 7.78125 22.4983C7.78125 26.6395 11.117 29.9966 15.2318 29.9966Z" fill="#0053E0"/>
+  <mask id="hy-mask" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="31" height="30">
+    <path d="M15.2326 30C23.4642 30 30.1372 23.2843 30.1372 15C30.1372 6.71573 23.4642 0 15.2326 0C7.00111 0 0.328125 6.71573 0.328125 15C0.328125 23.2843 7.00111 30 15.2326 30Z" fill="white"/>
+  </mask>
+  <g mask="url(#hy-mask)">
+    <path d="M15.2324 30L30.137 30L30.137 1.14441e-05L15.2324 1.14441e-05L15.2324 30Z" fill="#0053E0"/>
+  </g>
+  <path d="M15.2318 14.9966C19.3467 14.9966 22.6824 11.6395 22.6824 7.49831C22.6824 3.35711 19.3467 0 15.2318 0C11.117 0 7.78125 3.35711 7.78125 7.49831C7.78125 11.6395 11.117 14.9966 15.2318 14.9966Z" fill="#B3DDF2"/>
+  <path d="M15.3712 0.00674309C18.5069 0.0842886 21.0228 2.66015 21.0228 5.83277C21.0228 8.50977 19.2271 10.8328 16.6007 11.5037C16.6007 11.5037 16.6241 11.5003 16.6576 11.4936C14.4097 11.9757 12.7246 13.9852 12.7246 16.3924C12.7246 19.1605 14.9524 21.4026 17.7028 21.4026C18.4164 21.4026 19.3879 21.234 20.001 20.9609C23.9675 19.3493 26.47 15.4552 26.47 10.8867C26.47 4.87188 21.6258 0 15.6559 0C15.5588 0 15.465 0.00337154 15.3712 0.00674309ZM16.9491 11.443C16.9491 11.443 16.9591 11.443 16.9625 11.443C16.9591 11.443 16.9524 11.443 16.9491 11.443Z" fill="#2AB9FF"/>
+  <path d="M4.20222 18.9028C4.20222 15.8718 5.4116 13.124 7.36805 11.1213V11.1145C7.87726 10.5549 8.19217 9.81313 8.19217 8.99384C8.19217 7.2575 6.79518 5.85156 5.06989 5.85156C3.87056 5.85156 2.82868 6.53599 2.30607 7.53733C1.04979 9.73558 0.326172 12.2811 0.326172 15.0019C0.326172 23.0936 6.69468 29.685 14.6645 29.9884C8.83873 29.6917 4.20222 24.8435 4.20222 18.9028ZM2.16537 7.84752C2.15532 7.87112 2.14862 7.89135 2.14192 7.91495C2.14862 7.89135 2.15867 7.87112 2.16537 7.84752Z" fill="#0053E0"/>
+  <path d="M14.668 29.9844C14.8556 29.9945 15.0465 29.9979 15.2341 29.9979C15.0432 29.9979 14.8556 29.9911 14.668 29.9844Z" fill="#0053E0"/>
+  <path d="M15.3756 0.0078125C18.5113 0.085358 21.0272 2.66122 21.0272 5.83384C21.0272 8.51084 19.2014 10.8372 16.6051 11.5048C14.6285 11.9667 13.1679 13.5344 12.8262 15.4023C12.8262 15.4023 13.8948 15.0044 15.2148 15.0044C15.2148 15.0044 15.2081 15.0044 15.2047 15.0044C15.2148 15.0044 15.2215 15.0044 15.2315 15.0044C19.3488 15.0044 22.6821 11.6464 22.6821 7.50612C22.6821 3.36587 19.4225 0.085358 15.3756 0.0078125Z" fill="#ECECEE"/>
+  </symbol>
+  <symbol id="lg-argos" viewBox="0 0 96 96"><image width="96" height="96" href="data:image/png;base64,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"/></symbol>
+</svg>
+
+<svg class="ac-sprite" aria-hidden="true" focusable="false">
+  <symbol id="ic-translate" viewBox="0 0 24 24"><path d="M3 5h10M8 3v2c0 4-2 6.5-5 8"/><path d="M5 9c1 2.5 3 4 6 5"/><path d="M13 20l4-10 4 10M14.5 16.5h5"/></symbol>
+  <symbol id="ic-ocr" viewBox="0 0 24 24"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><path d="M4 12h16"/></symbol>
+  <symbol id="ic-doc" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v5h4M9 13h6M9 17h6"/></symbol>
+  <symbol id="ic-chat" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/></symbol>
+  <symbol id="ic-engine" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></symbol>
+  <symbol id="ic-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+</svg>
+
+<header class="nav" id="nav">
+  <div class="wrap nav-in">
+    <a class="brand" href="lylaunch.html" aria-label="返回轻启 LyLaunch 产品页" title="轻启 LyLaunch 产品页">
+      <img class="ava" src="../assets/img/avatar.png" alt="黎月的手写签名">
+      <span class="who"><b>轻启 LyLaunch</b><i>Local model plugins</i></span>
+    </a>
+    <nav class="links">
+      <a href="#overview"><b>总览</b><i>Overview</i></a>
+      <a href="#models"><b>模型</b><i>Models</i></a>
+      <a href="#ocr"><b>识别</b><i>OCR</i></a>
+      <a href="#chat"><b>对话</b><i>Chat</i></a>
+      <a href="#integration"><b>接入</b><i>Integration</i></a>
+    </nav>
+    <div class="status">
+      <a class="gh" href="https://github.com/LiyueDev/LyLaunch" target="_blank" rel="noopener" aria-label="GitHub 仓库" title="github.com/LiyueDev/LyLaunch">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+      </a>
+      <a class="pill" href="lylaunch.html">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        返回产品页
+      </a>
+      <span class="ver">Alt + Space</span>
+    </div>
+  </div>
+</header>
+
+<main class="pl-main">
+  <section class="sec pl-hero" id="overview">
+    <div class="wrap">
+      <div class="sec-brand reveal">
+        <div class="sec-brand-l">
+          <svg class="sec-brand-mark" viewBox="60 26 136 204" aria-hidden="true" focusable="false">
+            <path d="M70 54 Q80 36 92 46 Q102 56 94 90 Q84 132 82 160 Q80 182 96 182 Q114 182 124 160 Q134 138 136 114 Q142 144 154 166 Q164 180 176 162 Q184 148 184 134 Q186 170 174 200 Q164 220 138 212"
+                  fill="none" stroke="#2F6BEE" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="sec-brand-cn">轻启</span>
+          <span class="sec-brand-en">LyLaunch</span>
+        </div>
+        <span class="sec-brand-pill"><i></i>Windows 10 / 11 · 免费开源</span>
+      </div>
+
+      <p class="eyebrow"><em>01</em>Plugins · 插件</p>
+      <h1 class="h1">四个插件，共用一套本地模型<span class="sup-group"><span class="pl-sup">一次下载</span><span class="pl-sup free">全程离线</span></span></h1>
+      <p class="lede">翻译、识别、读文档、聊天——四件事都跑在本机模型上。装一次权重，之后断网照用；四个插件共用一套推理引擎，不会各起一个进程抢显存。</p>
+
+      <div class="ac-stats reveal">
+        <span class="ac-stat"><b>4</b> 个用模型的插件</span>
+        <span class="ac-stat"><b>9</b> 个模型共用一份注册表</span>
+        <span class="ac-stat"><b>1</b> 套引擎</span>
+        <span class="ac-stat">模型只下这一次</span>
+      </div>
+
+      <div class="ov-grid">
+        <div class="ov-card reveal">
+          <i class="ov-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-translate"/></svg></i>
+          <div><h3>文本翻译</h3><p>默认 <b>Argos</b>（70MB，免 key），可切 <b>Hy-MT2 1.8B / 7B</b>；支持译文可编辑、反译。</p></div>
+        </div>
+        <div class="ov-card reveal">
+          <i class="ov-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-ocr"/></svg></i>
+          <div><h3>图片转文字</h3><p>默认 <b>PP-OCRv6</b>（30MB，毫秒级），可切 <b>Xiaomi-OCR-0 / OvisOCR2</b> 读表格公式。</p></div>
+        </div>
+        <div class="ov-card reveal">
+          <i class="ov-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-doc"/></svg></i>
+          <div><h3>文档识别</h3><p>PDF / Excel / Word 批量拖入，表格还原成 Markdown；用 <b>Xiaomi-OCR-0</b> 本地解析。</p></div>
+        </div>
+        <div class="ov-card reveal">
+          <i class="ov-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-chat"/></svg></i>
+          <div><h3>本地 AI</h3><p>当前模型 <b>Qwen3.5-9B</b>，不用装 Ollama；会话只存本机，可备份或删除。</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec band" id="models">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="reveal">
+          <p class="eyebrow"><em>02</em>Models · 对应模型</p>
+          <h2 class="h2">四个插件，<br>分别能用哪些模型。</h2>
+        </div>
+        <p class="sub reveal">所有模型都在「设置 → 本地模型」里管理，装好就自动出现在对应插件的下拉里。OCR 与文档识别共用同一份权重，不会因为开了两个插件就下两份。</p>
+      </div>
+
+      <table class="pl-table reveal">
+        <thead><tr><th>插件</th><th style="width:210px">开箱即用</th><th>切换之后</th></tr></thead>
+        <tbody>
+          <tr><td>文本翻译</td><td class="def">Argos · 70MB</td><td class="opt">Hy-MT2 1.8B / 7B——长句和专业内容更稳</td></tr>
+          <tr><td>图片转文字</td><td class="def">PP-OCRv6 · 30MB</td><td class="opt">Xiaomi-OCR-0 / OvisOCR2——表格、公式、手写</td></tr>
+          <tr><td>文档识别</td><td class="def">Xiaomi-OCR-0 · 约 700MB</td><td class="opt">OvisOCR2——扫描件和图片型 PDF 更干净</td></tr>
+          <tr><td>本地 AI</td><td class="def">Qwen3.5-9B · 6.1GB</td><td class="opt">Qwen3-VL-8B / 4B / 1.7B / R1-14B——按显存挑</td></tr>
+        </tbody>
+      </table>
+
+      <div class="ac-banner reveal">
+        <i class="ac-banner-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-engine"/></svg></i>
+        <div>
+          <h4>模型装一次，四个插件一起用</h4>
+          <p>所有模型都在「设置 → 本地模型」里管理，装好就自动出现在对应插件的下拉里。OCR 与文档识别共用同一份权重，<b>不会因为开了两个插件就下两份、占两份内存</b>。</p>
+        </div>
+      </div>
+    
+      <h3 class="ac-sect-title reveal">全部 11 个模型<span>三类能力，按显存挑</span></h3>
+<div class="ml-groups">
+      <section class="ml-group reveal" aria-labelledby="ml-mm">
+        <div class="ml-head"><h3 id="ml-mm">本地多模态</h3><span class="ml-count">5</span></div>
+        <ul class="ml-rows">
+          <li class="ml-row">
+            <span class="ml-ico" style="color:#615CED"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#lg-qwen"/></svg></span>
+            <div class="ml-meta">
+              <div class="ml-name"><span class="ml-series">Qwen</span><b>Qwen3-1.7B</b></div>
+              <p class="ml-desc">最轻的一档 · 核显 / 纯 CPU 也能跑，随手问问题不占显卡<span class="ml-vram">≈ 1.1 GB</span></p>
+            </div>
+          </li>
+          <li class="ml-row">
+            <span class="ml-ico" style="color:#615CED"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#lg-qwen"/></svg></span>
+            <div class="ml-meta">
+              <div class="ml-name"><span class="ml-series">Qwen</span><b>Qwen3-4B</b><span class="ml-tag pick">推荐</span></div>
+              <p class="ml-desc">8 GB 显存甜点 · 会思考，日常问答、写作、整理都够用<span class="ml-vram">≈ 2.4 GB</span></p>
+            </div>
+          </li>
+          <li class="ml-row">
+            <span class="ml-ico" style="color:#615CED"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#lg-qwen"/></svg></span>
+            <div class="ml-meta">
+              <div class="ml-name"><span class="ml-series">Qwen</span><b>Qwen3-VL-8B</b><span class="ml-tag">视觉</span></div>
+              <p class="ml-desc">能看图 · 文档、表格、截图理解，建议 12 GB 显存<span class="ml-vram">≈ 5.5 GB</span></p>
+            </div>
+          </li>
+          <li class="ml-row">
+            <span class="ml-ico" style="color:#615CED"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#lg-qwen"/></svg></span>
+            <div class="ml-meta">
+              <div class="ml-name"><span class="ml-series">Qwen</span><b class="ml-long">Qwen3.5-9B-DeepSeek-V4-Flash</b><span class="ml-tag">思考 + 视觉</span></div>
+              <p class="ml-desc">底座 Qwen3.5-9B，用 DeepSeek-V4-Flash 推理数据训练 · 会思考也能看图<span class="ml-vram">≈ 7.5 GB</span></p>
+            </div>
+          </li>
+          <li class="ml-row">
+            <span class="ml-ico" style="color:#4D6BFE"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#lg-deepseek"/></svg></span>
+            <div class="ml-meta">
+              <div class="ml-name"><span class="ml-series">DeepSeek</span><b>DeepSeek-R1-14B</b><span class="ml-tag">深度推理</span></div>
+              <p class="ml-desc">推理强 · 先思考再回答，速度偏慢；12 GB 显存偏紧，上下文压到 4096<span class="ml-vram">≈ 8.6 GB</span></p>
+            </div>
+          </li>
+        </ul>
+      </section>
+
+        <section class="ml-group reveal" aria-labelledby="ml-mt">
+        <div class="ml-head"><h3 id="ml-mt">翻译模型</h3><span class="ml-count">3</span></div>
+        <ul class="ml-rows">
+          <li class="ml-row">
+            <span class="ml-ico" style="color:#1F2937;--ml-sz:24px"><svg viewBox="0 0 96 96" aria-hidden="true"><use href="#lg-argos"/></svg></span>
+            <div class="ml-meta">
+              <div class="ml-name"><span class="ml-series">Argos</span><b>Argos</b><span class="ml-tag builtin">内置</span></div>
+              <p class="ml-desc">轻量离线翻译引擎 · 语言对按需下载，纯 CPU 即可，日常短句最快<span class="ml-vram">CPU 可跑</span></p>
+            </div>
+          </li>
+          <li class="ml-row">
+            <span class="ml-ico" style="color:#0053E0"><svg viewBox="0 0 31 30" aria-hidden="true"><use href="#lg-hunyuan"/></svg></span>
+            <div class="ml-meta">
+              <div class="ml-name"><span class="ml-series">Hunyuan</span><b>Hy-MT2 1.8B</b></div>
+              <p class="ml-desc">翻译专用小模型 · 质量高、出字快，中英互译日常够用<span class="ml-vram">≈ 1 GB</span></p>
+            </div>
+          </li>
+          <li class="ml-row">
+            <span class="ml-ico" style="color:#0053E0"><svg viewBox="0 0 31 30" aria-hidden="true"><use href="#lg-hunyuan"/></svg></span>
+            <div class="ml-meta">
+              <div class="ml-name"><span class="ml-series">Hunyuan</span><b>Hy-MT2 7B</b></div>
+              <p class="ml-desc">高质量翻译 · 长句、专业内容、多语言场景最稳<span class="ml-vram">≈ 5 GB</span></p>
+            </div>
+          </li>
+        </ul>
+      </section>
+
+        <section class="ml-group reveal" aria-labelledby="ml-ocr">
+        <div class="ml-head"><h3 id="ml-ocr">OCR / 文档识别</h3><span class="ml-count">3</span></div>
+        <ul class="ml-rows">
+          <li class="ml-row">
+            <span class="ml-ico" style="color:#2932E1"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#lg-baidu"/></svg></span>
+            <div class="ml-meta">
+              <div class="ml-name"><span class="ml-series">PaddleOCR</span><b>PP-OCRv6</b><span class="ml-tag builtin">内置</span></div>
+              <p class="ml-desc">随软件附带，装好即用 · 截图取字、界面文字识别最快<span class="ml-vram">免下载</span></p>
+            </div>
+          </li>
+          <li class="ml-row">
+            <span class="ml-ico" style="color:#FF6900;--ml-sz:17px"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#lg-xiaomi"/></svg></span>
+            <div class="ml-meta">
+              <div class="ml-name"><span class="ml-series">Xiaomi</span><b>Xiaomi-OCR-0</b></div>
+              <p class="ml-desc">中文票据 / 截图 / 手写更稳 · 轻量快速，整页转 Markdown，表格自动还原<span class="ml-vram">≈ 1 GB</span></p>
+            </div>
+          </li>
+          <li class="ml-row">
+            <span class="ml-ico" style="color:#FF6A00"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#lg-alibaba"/></svg></span>
+            <div class="ml-meta">
+              <div class="ml-name"><span class="ml-series">Ovis</span><b>OvisOCR2</b></div>
+              <p class="ml-desc">扫描件 / 图片型 PDF 首选 · 按阅读顺序输出干净 Markdown，公式转 LaTeX<span class="ml-vram">≈ 1 GB</span></p>
+            </div>
+          </li>
+        </ul>
+      </section>
+    </div>
+      <p class="ml-note reveal"><b>内置</b> = 随安装包附带，无需下载；其余模型在设置页按需下载，可随时卸载。量化统一为 <b>Q4_K_M</b>，显存按 12 GB 显卡实测估算，供参考。模型图标为各厂商商标，此处仅用于标识型号来源，版权归各厂商所有。</p>
+</div>
+  </section>
+
+  <section class="sec pl-detail" id="ocr">
+    <div class="wrap">
+      <div class="detail-head reveal">
+        <p class="eyebrow"><em>03</em>OCR · 图片转文字</p>
+      </div>
+      <div class="detail-head reveal">
+        <h2>打几个字，或者拖一张图。</h2>
+        <span class="tag">0.14 秒</span>
+      </div>
+      <p class="detail-lead">不用先下载大模型——识别走 30MB 的 PP-OCRv6，装好就能用。截图或拖图进来，默认毫秒级；表格公式换 Xiaomi-OCR-0，与文档识别共用权重。</p>
+      <div class="pl-models reveal"><span>PP-OCRv6 · 30MB · 默认</span><span class="on">Xiaomi-OCR-0 · 用于本图</span><span>OvisOCR2 · 可选</span></div>
+      <img class="pl-shot reveal" src="../assets/img/lylaunch/plugins/ocr-full.png" width="825" height="595" loading="lazy" decoding="async" alt="图片转文字完整窗口：左侧 logo 原图、右侧 ly 轻启 LyLaunch 的识别结果与底部耗时">
+      <p class="pl-shot-cap reveal">实机截图 · 识别 LyLaunch logo，12 字，耗时 0.14 秒</p>
+    </div>
+  </section>
+
+  <section class="sec band pl-detail" id="doc">
+    <div class="wrap">
+      <div class="detail-head reveal">
+        <p class="eyebrow"><em>04</em>Documents · 文档识别</p>
+      </div>
+      <div class="detail-head reveal">
+        <h2>一份文档，直接读成文字。</h2>
+        <span class="tag">Xiaomi-OCR-0</span>
+      </div>
+      <p class="detail-lead">PDF、图片、Excel、Word 一起拖进来，表格还原成 Markdown，公式和手写也能读。识别完可直接导出网页、Markdown 或纯文本，全程不联网。</p>
+      <div class="pl-models reveal"><span class="on">Xiaomi-OCR-0 · 使用中 · 约 700MB</span><span>OvisOCR2 · 可选下载</span></div>
+      <img class="pl-shot reveal" src="../assets/img/lylaunch/plugins/doc-full.png" width="1150" height="775" loading="lazy" decoding="async" alt="文档识别完整窗口：左侧已加入的文件、右侧解析出的文字和顶部导出按钮">
+      <p class="pl-shot-cap reveal">实机截图 · PDF 解析出 700 字，结果可直接导出</p>
+    </div>
+  </section>
+
+  <section class="sec pl-detail" id="chat">
+    <div class="wrap">
+      <div class="detail-head reveal">
+        <p class="eyebrow"><em>05</em>Chat · 本地 AI</p>
+      </div>
+      <div class="detail-head reveal">
+        <h2>在软件里，和本地模型一直聊。</h2>
+        <span class="tag">Qwen3.5-9B</span>
+      </div>
+      <p class="detail-lead">不用装 Ollama，也不用填 key。模型下完就在下拉里选；会话按时间列在左侧，可多选删除或单独备份，上下文大小按显存自己调。</p>
+      <div class="pl-models reveal"><span class="on">Qwen3.5-9B · 当前</span><span>Qwen3-VL-8B · 已下载</span><span>4B / 1.7B / R1-14B · 可选</span></div>
+      <img class="pl-shot reveal" src="../assets/img/lylaunch/plugins/chat-full.png" width="1700" height="1144" loading="lazy" decoding="async" alt="本地 AI 完整窗口：左侧会话列表、右侧问答内容、底部模型选择 Qwen3.5-9B">
+      <p class="pl-shot-cap reveal">实机截图 · 一次回答 1073 token、耗时 13.0 秒</p>
+
+    </div>
+  </section>
+
+  <section class="sec band pl-detail" id="integration">
+    <div class="wrap">
+      <div class="detail-head reveal">
+        <p class="eyebrow"><em>06</em>Integration · 接入</p>
+      </div>
+      <div class="detail-head reveal">
+        <h2>本地模型，接进 DeepSeek Harness。</h2>
+        <span class="tag">18091</span>
+      </div>
+      <p class="detail-lead">装好的模型，在设置里点一下「接入」，dsh 的模型选择器里就多出一组「LyLaunch 本地模型」。接进去的两个都带视觉，能读图也能聊天；它到底在跑什么、吃多少显存，同一页的监控面板都写着。</p>
+
+      <div class="ac-stats reveal">
+        <span class="ac-stat"><b>2</b> 个模型已接入</span>
+        <span class="ac-stat"><b>18091</b> 独立端口</span>
+        <span class="ac-stat"><b>77.5</b> t/s 实测输出</span>
+        <span class="ac-stat"><b>112K</b> 上下文窗口</span>
+      </div>
+
+      <div class="dsh-split reveal">
+        <figure class="dsh-panel">
+          <img src="../assets/img/lylaunch/dsh/panel.png" width="786" height="434" loading="lazy" decoding="async" alt="运行监控面板：输出速度 77.5 t/s、上下文占用 0.4%（408 / 114,688 tok）、缓存命中 36%、显存 11,480 / 12,227 MB、GPU 82% · 52°C">
+          <figcaption>设置 · 外部集成 · 运行监控</figcaption>
+        </figure>
+        <div class="dsh-read">
+          <h3>接上之后，不用猜它在干嘛</h3>
+          <dl>
+            <dt>输出速度</dt>
+            <dd>每 2 秒的差分，不是平均值；<b>掉速会立刻显出来</b>，不用等到回复变慢才怀疑。</dd>
+            <dt>上下文占用</dt>
+            <dd>窗口开到 112K，这一轮其实只吃了 408 token（0.4%）——<b>先给够，用多少算多少</b>。</dd>
+            <dt>显存与温度</dt>
+            <dd>整卡 11,480 / 12,227 MB、GPU 82% · 52°C。口径是<b>整卡</b>，含其他程序，不只是模型自己。</dd>
+          </dl>
+        </div>
+      </div>
+
+      <div class="dsh-steps">
+        <article class="dsh-step reveal">
+          <img src="../assets/img/lylaunch/dsh/step1.png" width="636" height="320" style="object-position:left center" loading="lazy" decoding="async" alt="本地模型页：Qwen3-VL-8B 与 Qwen3.5-9B-DeepSeek-V4-Flash 显示已安装">
+          <h3><span class="dsh-step-no">1</span>先把模型装好</h3>
+          <p>要接的是「视觉 · 对话」这两个，装完直接显示 <b>已安装 · 可直接使用</b>。没装的模型不会出现在接入列表里。</p>
+        </article>
+        <article class="dsh-step reveal">
+          <img src="../assets/img/lylaunch/dsh/step2.png" width="676" height="340" style="object-position:left center" loading="lazy" decoding="async" alt="外部集成页配置分栏：已接入 qwen3-vl-8b 与 qwen35-9b-v4-distill，外部引擎运行中">
+          <h3><span class="dsh-step-no">2</span>点「接入」</h3>
+          <p>同一页能看到接入了哪几个、引擎在不在跑、上下文给了多大。改完上下文要按<b>重启</b>才生效。</p>
+        </article>
+        <article class="dsh-step reveal">
+          <img src="../assets/img/lylaunch/dsh/step3.png" width="563" height="283" style="object-position:left center" loading="lazy" decoding="async" alt="DeepSeek Harness 的模型选择器：LyLaunch 本地模型分组下是 Qwen3-VL-8B 与 Qwen3.5-9B-DeepSeek-V4-Flash">
+          <h3><span class="dsh-step-no">3</span>回 dsh 里选它</h3>
+          <p>选择器里会多出一组「LyLaunch 本地模型」，和云端账号并列。选中之后所有请求都走本机。</p>
+        </article>
+      </div>
+
+      <div class="dsh-banner reveal">
+        <i class="dsh-banner-ic">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>
+        </i>
+        <div>
+          <h4>只往自己那一段里写，不动你原来的配置</h4>
+          <p>写入前先留一份备份，写完做一次格式校验，不通过就原样退回；不用了点「撤销」，连占位密钥一起收走。外部引擎单开在 18091，和插件的 18090 互不打扰——<b>改外部集成的上下文，不会打断正在跑的翻译和识别</b>。</p>
+        </div>
+      </div>
+      <p class="dsh-note reveal">速度、显存与缓存命中均为实机读数，会随模型大小和显卡不同。</p>
+
+      <a class="pl-back" href="lylaunch.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+        返回轻启 LyLaunch 产品页
+      </a>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap foot-in">
+    <p>© 2026 黎月 · LiyueDev　截图未做修图；识别耗时与回答速度会随模型大小和显卡不同。</p>
+    <div class="foot-r">
+      <a href="lylaunch.html">← 产品页</a>
+      <span>v1.2.3</span>
+      <span>No build step</span>
+      <a href="https://github.com/LiyueDev/LyLaunch" target="_blank" rel="noopener">GitHub ↗</a>
+    </div>
+  </div>
+</footer>
+
+<script src="../assets/js/lylaunch.js" defer></script>
+</body>
+</html>
